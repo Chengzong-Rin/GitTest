@@ -69,6 +69,23 @@
   font-size: 11px;
 }
 
+.my-page-nav {
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  color: #426654;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.my-page-nav:hover {
+  border-bottom-color: #426654;
+  color: #254d3d;
+}
+
 .signout-button,
 .back-button,
 .previous-button {
@@ -503,6 +520,26 @@
   color: #5a7162;
   font-size: 9px;
   font-weight: 500;
+}
+
+.bookmark-button {
+  margin-left: auto;
+  padding: 5px 0 5px 10px;
+  border: 0;
+  background: transparent;
+  color: #647d6c;
+  cursor: pointer;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.bookmark-button[aria-pressed='true'] {
+  color: #bd6344;
+}
+
+.bookmark-button:hover {
+  color: #bd6344;
 }
 
 .question-panel h1 {

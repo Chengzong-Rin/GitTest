@@ -1,6 +1,6 @@
 # Fieldnote
 
-Fieldnote is a React sign-in page with a local Express API and SQLite user store.
+Fieldnote is a React study app with IT Passport and FE mini-mocks, a local Express API, and a SQLite user store.
 
 ## Run locally
 
@@ -19,7 +19,13 @@ The interface supports Japanese, English, and Thai. The selected language is rem
 
 After signing in, choose IT Passport or Fundamental Information Technology Engineer (FE). Each track currently has 10 original questions and a 15-minute timer, with question navigation, scoring, and explanations. Attempt history is saved per account in that browser's local storage; it is separate from the SQLite authentication database.
 
-The supplied `kihonjouho_mondai-main/kakomon` JSON files informed the topic coverage. The app uses newly written practice questions, not copied official exam questions.
+The supplied `kihonjouho_mondai-main/kakomon` JSON files informed the topic coverage. The app uses newly written practice questions, not copied official exam questions. Questions can be bookmarked, and completed attempts record topic-level accuracy to highlight areas to review.
+
+## My Page
+
+My Page includes an editable display name and avatar, exam history and statistics, saved questions, weak-topic summaries, language and theme preferences, active-session management, password changes, authenticator-based two-factor authentication, JSON data export, and account deletion. Attempt history and bookmarks are stored in that browser's local storage; profile and security data are stored in SQLite. Email addresses are not verified because this app has no email delivery provider.
+
+Two-factor setup uses a TOTP authenticator app and provides one-time recovery codes. In development, the encryption key is generated in `data/totp-encryption.key`; back up this file alongside the SQLite database. In production, set `TOTP_ENCRYPTION_KEY` to a persistent base64-encoded 32-byte key. Generate it once with `openssl rand -base64 32`, store it securely, and do not rotate it while accounts have two-factor authentication enabled.
 
 ## Production
 
@@ -32,4 +38,4 @@ npm start
 
 The server serves the built app and API on port `3001` by default. Set `PORT` to change it, and set `DB_PATH` to choose another SQLite file. Production cookies are marked `Secure`, so deploy behind HTTPS. Back up the SQLite database file to preserve accounts.
 
-Authentication includes basic rate limiting and server-side session revocation on sign-out. For a public production deployment, also configure HTTPS, database backups, monitoring, and an appropriate account recovery flow.
+Authentication includes basic rate limiting, bcrypt password hashing, encrypted TOTP secrets, and revocable server-side sessions. For a public production deployment, also configure HTTPS, secure persistent secrets, database/key backups, monitoring, and an email verification or recovery provider.
