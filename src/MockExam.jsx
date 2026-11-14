@@ -3,6 +3,7 @@ import MyPage from './MyPage.jsx'
 import { examQuestionSets } from './mockQuestions.js'
 import { localizeQuestion } from './questionTranslations.js'
 import { translate, translateCategory } from './translations.js'
+import ChatAssistant from './ChatAssistant.jsx'
 import './MockExam.css'
 
 const examTracks = [
@@ -50,6 +51,30 @@ function readBookmarks(storageKey) {
   }
 }
 
+function readPracticeMisses(storageKey) {
+  try {
+    const savedMisses = JSON.parse(localStorage.getItem(storageKey) || '{}')
+    return {
+      itPassport: Array.isArray(savedMisses.itPassport) ? savedMisses.itPassport : [],
+      fe: Array.isArray(savedMisses.fe) ? savedMisses.fe : [],
+    }
+  } catch {
+    return { itPassport: [], fe: [] }
+  }
+}
+
+function readResolvedReviewQuestions(storageKey) {
+  try {
+    const savedQuestions = JSON.parse(localStorage.getItem(storageKey) || '{}')
+    return {
+      itPassport: Array.isArray(savedQuestions.itPassport) ? savedQuestions.itPassport : [],
+      fe: Array.isArray(savedQuestions.fe) ? savedQuestions.fe : [],
+    }
+  } catch {
+    return { itPassport: [], fe: [] }
+  }
+}
+
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60).toString().padStart(2, '0')
   const remainder = (seconds % 60).toString().padStart(2, '0')
@@ -61,6 +86,17 @@ function getScore(questions, answers) {
     (total, question) => total + (answers[question.id] === question.answer ? 1 : 0),
     0,
   )
+}
+
+function shuffleQuestions(questions) {
+  const shuffled = [...questions]
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    const current = shuffled[index]
+    shuffled[index] = shuffled[swapIndex]
+    shuffled[swapIndex] = current
+  }
+  return shuffled
 }
 
 function getCompletionTime() {
@@ -76,18 +112,30 @@ function getCompletionTime() {
 function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUserUpdate, onAccountDeleted, onSignOut }) {
   const storageKey = `fieldnote-mock-history:${user.id}`
   const bookmarkStorageKey = `fieldnote-mock-bookmarks:${user.id}`
+  const practiceMissesStorageKey = `fieldnote-practice-misses:${user.id}`
+  const resolvedReviewStorageKey = `fieldnote-resolved-review:${user.id}`
   const [view, setView] = useState('dashboard')
   const [viewBeforeMyPage, setViewBeforeMyPage] = useState('dashboard')
   const [examId, setExamId] = useState(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
+  const [practiceQuestions, setPracticeQuestions] = useState([])
+  const [practiceMode, setPracticeMode] = useState('')
+  const [practiceScore, setPracticeScore] = useState(null)
+  const [customCounts, setCustomCounts] = useState({ itPassport: 10, fe: 10 })
+  const [error, setError] = useState('')
   const [timeLeft, setTimeLeft] = useState(durationSeconds)
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState(() => readHistory(storageKey))
+  const [practiceMisses, setPracticeMisses] = useState(() => readPracticeMisses(practiceMissesStorageKey))
+  const [resolvedReviewQuestions, setResolvedReviewQuestions] = useState(() => readResolvedReviewQuestions(resolvedReviewStorageKey))
   const [bookmarkedIds, setBookmarkedIds] = useState(() => readBookmarks(bookmarkStorageKey))
 
   const currentExam = examTracks.find((exam) => exam.id === examId)
-  const sourceQuestions = examId ? examQuestionSets[examId] : emptyQuestions
+  const isPractice = view === 'practice'
+  const sourceQuestions = isPractice
+    ? practiceQuestions
+    : examId ? examQuestionSets[examId] : emptyQuestions
   const questions = sourceQuestions.map((question) => localizeQuestion(question, language))
   const currentQuestion = questions[currentIndex]
   const answeredCount = Object.keys(answers).length
@@ -97,12 +145,116 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
     .map((question) => localizeQuestion(question, language))
 
   function startExam(nextExamId) {
+    setError('')
     setExamId(nextExamId)
+    setPracticeQuestions([])
+    setPracticeMode('')
     setCurrentIndex(0)
     setAnswers({})
     setResult(null)
     setTimeLeft(durationSeconds)
     setView('test')
+  }
+
+  function startPractice(nextQuestions, mode) {
+    if (!nextQuestions.length) return
+    setError('')
+    setExamId(null)
+    setPracticeQuestions(nextQuestions)
+    setPracticeMode(mode)
+    setPracticeScore(null)
+    setCurrentIndex(0)
+    setAnswers({})
+    setResult(null)
+    setView('practice')
+  }
+
+  function startDailyQuest() {
+    const allQuestions = Object.values(examQuestionSets).flat()
+    startPractice(shuffleQuestions(allQuestions).slice(0, 10), 'dailyQuest')
+  }
+
+  function getMissedQuestions(nextExamId) {
+    const mockMissedIds = history
+      .filter((attempt) => attempt.examId === nextExamId)
+      .flatMap((attempt) => Array.isArray(attempt.incorrectQuestionIds) ? attempt.incorrectQuestionIds : [])
+    const missedIds = new Set([
+      ...mockMissedIds,
+      ...practiceMisses[nextExamId],
+    ])
+    const resolvedIds = new Set(resolvedReviewQuestions[nextExamId])
+    return examQuestionSets[nextExamId].filter((question) => missedIds.has(question.id) && !resolvedIds.has(question.id))
+  }
+
+  function saveResolvedReviewQuestions(nextResolvedQuestions) {
+    try {
+      localStorage.setItem(resolvedReviewStorageKey, JSON.stringify(nextResolvedQuestions))
+      setResolvedReviewQuestions(nextResolvedQuestions)
+      setError('')
+      return true
+    } catch {
+      setError(translate(language, 'practiceMissSaveError'))
+      return false
+    }
+  }
+
+  function selectPracticeAnswer(question, answerIndex) {
+    if (answers[question.id] !== undefined) return
+    setAnswers((previous) => ({ ...previous, [question.id]: answerIndex }))
+
+    if (!practiceMode.startsWith('review-') || answerIndex !== question.answer) return
+    const examIdForReview = practiceMode.slice('review-'.length)
+    if (resolvedReviewQuestions[examIdForReview].includes(question.id)) return
+
+    saveResolvedReviewQuestions({
+      ...resolvedReviewQuestions,
+      [examIdForReview]: [...resolvedReviewQuestions[examIdForReview], question.id],
+    })
+  }
+
+  function startReview(nextExamId) {
+    startPractice(getMissedQuestions(nextExamId), `review-${nextExamId}`)
+  }
+
+  function startCustomPractice(nextExamId) {
+    const count = Math.max(1, Math.min(
+      examQuestionSets[nextExamId].length,
+      Number(customCounts[nextExamId]) || 1,
+    ))
+    startPractice(shuffleQuestions(examQuestionSets[nextExamId]).slice(0, count), `custom-${nextExamId}`)
+  }
+
+  function finishPractice() {
+    const score = getScore(sourceQuestions, answers)
+    if (practiceMode === 'dailyQuest' || practiceMode.startsWith('custom-')) {
+      const missedByExam = { itPassport: [], fe: [] }
+      for (const question of sourceQuestions) {
+        if (answers[question.id] === undefined || answers[question.id] === question.answer) continue
+        const exam = Object.entries(examQuestionSets)
+          .find(([, examQuestions]) => examQuestions.some((item) => item.id === question.id))
+        if (exam) missedByExam[exam[0]].push(question.id)
+      }
+
+      const nextPracticeMisses = {
+        itPassport: [...new Set([...practiceMisses.itPassport, ...missedByExam.itPassport])],
+        fe: [...new Set([...practiceMisses.fe, ...missedByExam.fe])],
+      }
+      const nextResolvedReviewQuestions = {
+        itPassport: resolvedReviewQuestions.itPassport.filter((id) => !missedByExam.itPassport.includes(id)),
+        fe: resolvedReviewQuestions.fe.filter((id) => !missedByExam.fe.includes(id)),
+      }
+      try {
+        localStorage.setItem(practiceMissesStorageKey, JSON.stringify(nextPracticeMisses))
+      } catch {
+        setError(translate(language, 'practiceMissSaveError'))
+        return
+      }
+      setPracticeMisses(nextPracticeMisses)
+      if (!saveResolvedReviewQuestions(nextResolvedReviewQuestions)) return
+    }
+
+    setPracticeScore(score)
+    setView('practiceResults')
   }
 
   function toggleBookmark(questionId) {
@@ -133,12 +285,27 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
       examId,
       correct: getScore(questions, answers),
       total: questions.length,
+      incorrectQuestionIds: sourceQuestions
+        .filter((question) => answers[question.id] !== undefined && answers[question.id] !== question.answer)
+        .map((question) => question.id),
       categoryResults,
       ...getCompletionTime(),
     }
     const nextHistory = [finishedResult, ...history].slice(0, 8)
     localStorage.setItem(storageKey, JSON.stringify(nextHistory))
     setHistory(nextHistory)
+    const missedByExam = { itPassport: [], fe: [] }
+    for (const questionId of finishedResult.incorrectQuestionIds) {
+      const questionExam = Object.entries(examQuestionSets)
+        .find(([, examQuestions]) => examQuestions.some((question) => question.id === questionId))
+      if (questionExam) missedByExam[questionExam[0]].push(questionId)
+    }
+    if (missedByExam.itPassport.length || missedByExam.fe.length) {
+      saveResolvedReviewQuestions({
+        itPassport: resolvedReviewQuestions.itPassport.filter((id) => !missedByExam.itPassport.includes(id)),
+        fe: resolvedReviewQuestions.fe.filter((id) => !missedByExam.fe.includes(id)),
+      })
+    }
     setResult(finishedResult)
     setView('results')
   }
@@ -163,6 +330,9 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
   function returnToDashboard() {
     setView('dashboard')
     setExamId(null)
+    setPracticeQuestions([])
+    setPracticeMode('')
+    setPracticeScore(null)
     setResult(null)
   }
 
@@ -206,6 +376,8 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
           <button className="signout-button" type="button" onClick={onSignOut}>{translate(language, 'logOut')}</button>
         </div>
       </header>
+
+      {error && <p className="form-status" role="alert">{error}</p>}
 
       {view === 'dashboard' && (
         <main className="exam-main">
@@ -255,6 +427,77 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
             })}
           </section>
 
+          <section className="practice-modes-section" aria-labelledby="practice-modes-title">
+            <div className="section-heading">
+              <h2 id="practice-modes-title">{translate(language, 'practiceModes')}</h2>
+              <span>{translate(language, 'instantFeedback')}</span>
+            </div>
+            <div className="practice-mode-grid">
+              <article className="practice-mode-card daily-mode-card">
+                <span className="practice-mode-kicker">01 / DAILY</span>
+                <h3>{translate(language, 'dailyQuest')}</h3>
+                <p>{translate(language, 'dailyQuestDescription')}</p>
+                <button className="start-button" type="button" onClick={startDailyQuest}>
+                  {translate(language, 'startPractice')} <span aria-hidden="true">↗</span>
+                </button>
+              </article>
+
+              {examTracks.map((exam, index) => {
+                const missedCount = getMissedQuestions(exam.id).length
+                return (
+                  <article className={`practice-mode-card ${exam.accent}`} key={`review-${exam.id}`}>
+                    <span className="practice-mode-kicker">{String(index + 2).padStart(2, '0')} / REVIEW</span>
+                    <h3>{translate(language, 'reviewMode')} · {getTrackName(exam)}</h3>
+                    <p>{translate(language, 'wrongQuestionsCount', { count: missedCount })}</p>
+                    <button
+                      className="start-button"
+                      type="button"
+                      disabled={missedCount === 0}
+                      onClick={() => startReview(exam.id)}
+                    >
+                      {translate(language, 'startPractice')} <span aria-hidden="true">↗</span>
+                    </button>
+                  </article>
+                )
+              })}
+
+              {examTracks.map((exam, index) => (
+                <article className={`practice-mode-card ${exam.accent}`} key={`custom-${exam.id}`}>
+                  <span className="practice-mode-kicker">{String(index + 4).padStart(2, '0')} / CUSTOM</span>
+                  <h3>{translate(language, 'customMode')} · {getTrackName(exam)}</h3>
+                  <p>{translate(language, 'customModeDescription')}</p>
+                  <label className="custom-count-control">
+                    <span>{translate(language, 'questionCount')}</span>
+                    <input
+                      type="number"
+                      min="1"
+                      max={examQuestionSets[exam.id].length}
+                      value={customCounts[exam.id]}
+                      aria-label={translate(language, 'questionCountFor', { exam: getTrackName(exam) })}
+                      onChange={(event) => {
+                        const value = event.target.value
+                        setCustomCounts((previous) => ({
+                          ...previous,
+                          [exam.id]: value === '' ? '' : Number(value),
+                        }))
+                      }}
+                    />
+                    <span>/ {examQuestionSets[exam.id].length}</span>
+                  </label>
+                  <button
+                    className="start-button"
+                    type="button"
+                    disabled={!Number(customCounts[exam.id])}
+                    onClick={() => startCustomPractice(exam.id)}
+                  >
+                    {translate(language, 'startPractice')} <span aria-hidden="true">↗</span>
+                  </button>
+                </article>
+              ))}
+            </div>
+            <p className="practice-modes-note">{translate(language, 'reviewHistoryHint')}</p>
+          </section>
+
           <section className="history-section" aria-labelledby="history-title">
             <div className="section-heading">
               <h2 id="history-title">{translate(language, 'recentHistory')}</h2>
@@ -297,6 +540,126 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
           onBack={returnFromMyPage}
           onStartExam={startExam}
         />
+      )}
+
+      {view === 'practice' && currentQuestion && (
+        <main className="test-main practice-main">
+          <div className="test-topline">
+            <button className="back-button" type="button" onClick={returnToDashboard}>← {translate(language, 'examList')}</button>
+            <span className="test-title">
+              {translate(language, practiceMode === 'dailyQuest' ? 'dailyQuest' : practiceMode.startsWith('review-') ? 'reviewMode' : 'customMode')}
+              <span> / {translate(language, 'instantFeedback')}</span>
+            </span>
+            <span className="practice-session-label">{translate(language, 'practiceModeLabel')}</span>
+          </div>
+
+          <div className="test-progress-row">
+            <span>{translate(language, 'answeredCount')} <strong>{answeredCount}</strong> / {questions.length}</span>
+            <div className="progress-track" role="progressbar" aria-label={translate(language, 'questionList')} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={currentIndex + 1}>
+              <span style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} />
+            </div>
+            <span>{currentIndex + 1} / {questions.length}</span>
+          </div>
+
+          <div className="test-layout">
+            <aside className="question-sidebar">
+              <span className="sidebar-label">{translate(language, 'questionList')}</span>
+              <div className="question-index-grid">
+                {questions.map((question, index) => (
+                  <button
+                    className={`question-index ${currentIndex === index ? 'current' : ''} ${answers[question.id] !== undefined ? 'answered' : ''}`}
+                    key={question.id}
+                    type="button"
+                    aria-label={translate(language, 'questionAria', {
+                      number: index + 1,
+                      answered: answers[question.id] !== undefined ? translate(language, 'questionAnsweredSuffix') : '',
+                    })}
+                    aria-current={currentIndex === index ? 'step' : undefined}
+                    onClick={() => setCurrentIndex(index)}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+              <div className="sidebar-legend"><span /> {translate(language, 'answered')}</div>
+            </aside>
+
+            <section className="question-panel" aria-labelledby="practice-question-title">
+              <div className="question-meta">
+                <span>{translate(language, 'questionLabel')} {String(currentIndex + 1).padStart(2, '0')}</span>
+                <span className="category-label">{translateCategory(language, currentQuestion.category)}</span>
+                <button
+                  className="bookmark-button"
+                  type="button"
+                  aria-pressed={bookmarkedIds.includes(currentQuestion.id)}
+                  onClick={() => toggleBookmark(currentQuestion.id)}
+                >
+                  {translate(language, bookmarkedIds.includes(currentQuestion.id) ? 'removeBookmark' : 'bookmarkQuestion')}
+                </button>
+              </div>
+              <h1 id="practice-question-title">{currentQuestion.prompt}</h1>
+              <p className="answer-instruction">{translate(language, 'chooseOne')}</p>
+
+              <div className="answer-list" role="radiogroup" aria-label={translate(language, 'answerOptions')}>
+                {currentQuestion.options.map((option, index) => {
+                  const selectedAnswer = answers[currentQuestion.id]
+                  const hasAnswered = selectedAnswer !== undefined
+                  const isCorrectOption = hasAnswered && index === currentQuestion.answer
+                  const isWrongSelection = hasAnswered && selectedAnswer === index && selectedAnswer !== currentQuestion.answer
+                  return (
+                    <button
+                      className={`answer-option ${selectedAnswer === index ? 'selected' : ''} ${isCorrectOption ? 'practice-correct' : ''} ${isWrongSelection ? 'practice-incorrect' : ''}`}
+                      key={option}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedAnswer === index}
+                      disabled={hasAnswered}
+                      onClick={() => selectPracticeAnswer(currentQuestion, index)}
+                    >
+                      <span className="option-letter">{translate(language, 'optionLetters')[index]}</span>
+                      <span>{option}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {answers[currentQuestion.id] !== undefined && (
+                <div className={`practice-feedback ${answers[currentQuestion.id] === currentQuestion.answer ? 'feedback-correct' : 'feedback-incorrect'}`} role="status">
+                  <strong>{translate(language, answers[currentQuestion.id] === currentQuestion.answer ? 'practiceCorrect' : 'practiceIncorrect')}</strong>
+                  <p>{translate(language, 'correctAnswer')}：{currentQuestion.options[currentQuestion.answer]}</p>
+                  <p>{currentQuestion.explanation}</p>
+                </div>
+              )}
+
+              <div className="question-controls">
+                <button className="previous-button" type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((index) => index - 1)}>
+                  {translate(language, 'previousQuestion')}
+                </button>
+                <button
+                  className="next-button"
+                  type="button"
+                  disabled={answers[currentQuestion.id] === undefined}
+                  onClick={() => currentIndex === questions.length - 1 ? finishPractice() : setCurrentIndex((index) => index + 1)}
+                >
+                  {translate(language, currentIndex === questions.length - 1 ? 'finishPractice' : 'nextQuestion')} <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </section>
+          </div>
+        </main>
+      )}
+
+      {view === 'practiceResults' && practiceScore !== null && (
+        <main className="results-main">
+          <section className="result-summary">
+            <span className="eyebrow">{translate(language, 'practiceResult')}</span>
+            <h1>{practiceScore}<span> / {practiceQuestions.length}</span></h1>
+            <p>{translate(language, 'practiceComplete')}</p>
+            <div className="result-actions">
+              <button className="next-button" type="button" onClick={returnToDashboard}>{translate(language, 'backToExams')}</button>
+            </div>
+          </section>
+        </main>
       )}
 
       {view === 'test' && currentExam && currentQuestion && (
@@ -429,6 +792,7 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
           </section>
         </main>
       )}
+      <ChatAssistant language={language} />
     </div>
   )
 }

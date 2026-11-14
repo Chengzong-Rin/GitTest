@@ -152,6 +152,13 @@ const accountRateLimit = rateLimit({
   legacyHeaders: false,
   message: { error: 'Too many attempts. Please try again later.' },
 })
+const aiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'Too many attempts. Please try again later.' },
+})
 
 app.disable('x-powered-by')
 app.use(express.json({ limit: '350kb' }))
@@ -337,6 +344,129 @@ app.post('/api/auth/login', authRateLimit, async (request, response, next) => {
 app.get('/api/auth/me', (request, response) => {
   if (!request.user) return response.status(401).json({ error: 'Not signed in.' })
   return response.json({ user: toPublicUser(findUserById.get(request.user.id)) })
+})
+
+app.post('/api/ai/chat', requireUser, aiRateLimit, async (request, response) => {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) return response.status(503).json({ error: 'AI_NOT_CONFIGURED' })
+
+  const message = typeof request.body?.message === 'string' ? request.body.message.trim() : ''
+  const history = request.body?.history
+  const screenshot = request.body?.screenshot
+  const language = ['ja', 'en', 'th'].includes(request.body?.language) ? request.body.language : 'en'
+
+  if (!message || message.length > 2000) {
+    return response.status(400).json({ error: 'AI_INVALID_MESSAGE' })
+  }
+  if (!Array.isArray(history) || history.length > 10 || history.some((item) => (
+    !item
+    || !['user', 'model'].includes(item.role)
+    || typeof item.text !== 'string'
+    || !item.text.trim()
+    || item.text.length > 2000
+  ))) {
+    return response.status(400).json({ error: 'AI_INVALID_HISTORY' })
+  }
+  if (screenshot !== undefined && (
+    typeof screenshot !== 'string'
+    || screenshot.length > 250_000
+    || !/^data:image\/jpeg;base64,[A-Za-z0-9+/]+={0,2}$/.test(screenshot)
+  )) {
+    return response.status(400).json({ error: 'AI_INVALID_SCREENSHOT' })
+  }
+
+  const languageNames = { ja: 'Japanese', en: 'English', th: 'Thai' }
+  const conversation = history
+    .map(({ role, text }) => `${role === 'user' ? 'Student' : 'Tutor'}: ${text.trim()}`)
+    .join('\n')
+  const prompt = [
+    `You are Fieldnote, a friendly study tutor for IT Passport and Fundamental Information Technology Engineer exam learners. Reply in ${languageNames[language]}. Explain concepts clearly, use short examples when useful, and guide learners to understand rather than only giving an answer. Be accurate and say when you are uncertain. Keep the answer focused.`,
+    conversation ? `Conversation so far:\n${conversation}` : '',
+    screenshot
+      ? 'The user opted to share a screenshot of the current Fieldnote page. Use it to understand the visible question or interface and give relevant help. Describe where to click using visible labels, but do not claim to click or change anything.'
+      : '',
+    `Student: ${message}`,
+    'Tutor:',
+  ].filter(Boolean).join('\n\n')
+  const model = process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite'
+
+  let upstream
+  try {
+    upstream = await fetch(
+      'https://generativelanguage.googleapis.com/v1beta/interactions',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          model,
+          input: screenshot
+            ? [
+                { type: 'text', text: prompt },
+                {
+                  type: 'image',
+                  data: screenshot.slice(screenshot.indexOf(',') + 1),
+                  mime_type: 'image/jpeg',
+                },
+              ]
+            : prompt,
+          generation_config: { thinking_level: 'minimal', max_output_tokens: 512 },
+          store: false,
+        }),
+        signal: AbortSignal.timeout(60_000),
+      },
+    )
+  } catch (error) {
+    if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+      console.error('Gemini API request timed out.')
+      return response.status(503).json({ error: 'AI_TIMEOUT' })
+    }
+    console.error(`Gemini API request failed: ${error.message}`)
+    return response.status(503).json({ error: 'AI_UNAVAILABLE' })
+  }
+
+  let result
+  try {
+    result = await upstream.json()
+  } catch {
+    if (!upstream.ok) {
+      console.error(`Gemini API returned HTTP ${upstream.status} with a non-JSON response.`)
+      return response.status(503).json({ error: 'AI_UNAVAILABLE' })
+    }
+    return response.status(502).json({ error: 'AI_INVALID_RESPONSE' })
+  }
+
+  if (!upstream.ok) {
+    const providerMessage = result?.error?.message
+    if (typeof providerMessage === 'string') {
+      console.error(`Gemini API returned HTTP ${upstream.status}: ${providerMessage.slice(0, 500)}`)
+    } else {
+      console.error(`Gemini API returned HTTP ${upstream.status}.`)
+    }
+    if (upstream.status === 429) {
+      return response.status(503).json({ error: 'AI_QUOTA_EXCEEDED' })
+    }
+    if ([400, 401, 403].includes(upstream.status)) {
+      return response.status(503).json({ error: 'AI_KEY_REJECTED' })
+    }
+    return response.status(503).json({ error: 'AI_UNAVAILABLE' })
+  }
+
+  const reply = result?.steps
+    ?.filter((step) => step.type === 'model_output')
+    .flatMap((step) => Array.isArray(step.content) ? step.content : [])
+    .filter((item) => item.type === 'text' && typeof item.text === 'string')
+    .map((item) => item.text)
+    .join('')
+    .trim()
+
+  if (!reply) {
+    console.error(`Gemini API returned no text output (status: ${result?.status ?? 'unknown'}).`)
+    return response.status(502).json({ error: 'AI_INVALID_RESPONSE' })
+  }
+  return response.json({ reply })
 })
 
 app.patch('/api/account/profile', requireUser, accountRateLimit, (request, response) => {
