@@ -135,20 +135,30 @@
   gap: 10px;
 }
 
-.ai-avatar,
-.ai-message-mark {
+.fieldnote-mark {
+  position: relative;
   display: grid;
   flex: 0 0 auto;
   place-items: center;
+  border: 1px solid #527264;
+  border-radius: 8px 8px 8px 2px;
+  background: #fbfcf9;
+}
+
+.fieldnote-mark::after {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: #eaf0e9;
-  color: #426654;
+  background: #e9a47c;
+  content: '';
 }
 
 .ai-avatar {
   width: 34px;
   height: 34px;
-  font-size: 17px;
 }
 
 .ai-chat-heading h2 {
@@ -209,14 +219,15 @@
 }
 
 .ai-welcome-mark {
-  display: grid;
   width: 42px;
   height: 42px;
-  place-items: center;
-  border-radius: 50%;
-  background: #eaf0e9;
-  color: #426654;
-  font-size: 21px;
+}
+
+.ai-welcome-mark::after {
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
 }
 
 .ai-welcome p {
@@ -255,10 +266,32 @@
   width: 24px;
   height: 24px;
   margin-top: 2px;
-  font-size: 12px;
 }
 
-.ai-message p {
+.ai-message-mark::after {
+  top: 3px;
+  right: 3px;
+  width: 5px;
+  height: 5px;
+}
+
+.ai-launcher-mark {
+  width: 17px;
+  height: 17px;
+  border-color: rgb(255 255 255 / 75%);
+  border-radius: 5px 5px 5px 1px;
+  background: transparent;
+}
+
+.ai-launcher-mark::after {
+  top: 2px;
+  right: 2px;
+  width: 4px;
+  height: 4px;
+}
+
+.ai-message > p,
+.ai-message-content {
   margin: 0;
   padding: 10px 12px;
   border-radius: 9px;
@@ -267,7 +300,6 @@
   font-size: 12px;
   line-height: 1.65;
   overflow-wrap: anywhere;
-  white-space: pre-wrap;
 }
 
 .ai-message-user p {
@@ -276,8 +308,45 @@
   color: #fff;
 }
 
-.ai-message-model p {
+.ai-message-model .ai-message-content {
   border-bottom-left-radius: 3px;
+}
+
+.ai-message-content p {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: pre-wrap;
+}
+
+.ai-message-content > p + p {
+  margin-top: 10px;
+}
+
+.ai-message-content ul,
+.ai-message-content ol {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.ai-message-content li + li {
+  margin-top: 5px;
+}
+
+.ai-message-content strong,
+.ai-message-content .ai-message-heading {
+  color: #284b39;
+  font-weight: 700;
+}
+
+.ai-message-content code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgb(32 61 50 / 8%);
+  font-family: monospace;
+  font-size: 0.95em;
 }
 
 .ai-typing p {

@@ -48,11 +48,27 @@
   color: #d7e1d8;
 }
 
-:root[data-theme='dark'] .ai-avatar,
-:root[data-theme='dark'] .ai-message-mark,
-:root[data-theme='dark'] .ai-welcome-mark {
-  background: #2b4032;
-  color: #c7dfcc;
+:root[data-theme='dark'] .ai-message-content {
+  background: #2b3a2f;
+  color: #d7e1d8;
+}
+
+:root[data-theme='dark'] .ai-message-content strong,
+:root[data-theme='dark'] .ai-message-content .ai-message-heading {
+  color: #e1e9e2;
+}
+
+:root[data-theme='dark'] .ai-message-content code {
+  background: rgb(224 232 225 / 10%);
+}
+
+:root[data-theme='dark'] .fieldnote-mark:not(.ai-launcher-mark) {
+  border-color: #9bb9a2;
+  background: #202c24;
+}
+
+:root[data-theme='dark'] .ai-launcher-mark {
+  border-color: rgb(255 255 255 / 75%);
 }
 
 :root[data-theme='dark'] .ai-chat-form textarea {
