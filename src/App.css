@@ -109,6 +109,51 @@
   color: #527264;
 }
 
+.login-panel {
+  position: relative;
+}
+
+.login-language {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  z-index: 1;
+}
+
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #dfe5df;
+  border-radius: 5px;
+  background: #fbfcf9;
+}
+
+.language-switch button {
+  min-width: 32px;
+  min-height: 25px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  color: #7d8b82;
+  cursor: pointer;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.language-switch button[aria-pressed='true'] {
+  background: #254d3d;
+  color: #fff;
+}
+
+.language-switch button:focus-visible {
+  outline: 2px solid #b75f3f;
+  outline-offset: 1px;
+}
+
 .login-content h1 {
   margin: 13px 0 7px;
   color: #203d32;

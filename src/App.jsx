@@ -1,13 +1,34 @@
 import { useEffect, useState } from 'react'
+import LanguageSwitcher from './LanguageSwitcher.jsx'
 import MockExam from './MockExam.jsx'
+import { supportedLanguages, translate, translateApiError } from './translations.js'
 import './App.css'
 
+function getSavedLanguage() {
+  try {
+    const savedLanguage = localStorage.getItem('fieldnote-language')
+    return supportedLanguages.includes(savedLanguage) ? savedLanguage : 'en'
+  } catch {
+    return 'en'
+  }
+}
+
 function App() {
+  const [language, setLanguage] = useState(getSavedLanguage)
   const [mode, setMode] = useState('login')
   const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState('')
   const [user, setUser] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.lang = language
+    try {
+      localStorage.setItem('fieldnote-language', language)
+    } catch {
+      // The selected language still applies for this session when storage is unavailable.
+    }
+  }, [language])
 
   useEffect(() => {
     let cancelled = false
@@ -18,13 +39,13 @@ function App() {
         if (!cancelled && data?.user) setUser(data.user)
       })
       .catch(() => {
-        if (!cancelled) setStatus('Could not connect to the sign-in service.')
+        if (!cancelled) setStatus(translate(language, 'connectError'))
       })
 
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [language])
 
   async function handleSubmit(event) {
     event.preventDefault()
@@ -34,7 +55,7 @@ function App() {
     const password = formData.get('password')
 
     if (isRegistering && password !== formData.get('confirmPassword')) {
-      setStatus('Your passwords do not match.')
+      setStatus(translate(language, 'passwordMismatch'))
       return
     }
 
@@ -53,11 +74,14 @@ function App() {
       })
       const data = await response.json()
 
-      if (!response.ok) throw new Error(data.error || 'Unable to sign in.')
+      if (!response.ok) {
+        throw new Error(translateApiError(language, data.error) || translate(language, 'signInError'))
+      }
       setUser(data.user)
-      setStatus(isRegistering ? 'Your account is ready.' : 'You are signed in.')
+      setStatus(translate(language, isRegistering ? 'accountReady' : 'signedIn'))
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unable to reach the sign-in service.')
+      const message = error instanceof Error ? error.message : ''
+      setStatus(message === 'Failed to fetch' ? translate(language, 'connectError') : message || translate(language, 'signInError'))
     } finally {
       setIsSubmitting(false)
     }
@@ -66,23 +90,23 @@ function App() {
   async function handleSignOut() {
     try {
       const response = await fetch('/api/auth/logout', { method: 'POST' })
-      if (!response.ok) throw new Error('Unable to sign out. Please try again.')
+      if (!response.ok) throw new Error(translate(language, 'signOutError'))
       setUser(null)
-      setStatus('You have been signed out.')
+      setStatus(translate(language, 'signedOut'))
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unable to sign out.')
+      setStatus(error instanceof Error ? error.message : translate(language, 'signOutError'))
     }
   }
 
-  if (user) return <MockExam user={user} onSignOut={handleSignOut} />
+  if (user) return <MockExam user={user} language={language} onLanguageChange={setLanguage} onSignOut={handleSignOut} />
 
   return (
-    <main className="login-layout">
-      <section className="visual-panel" aria-label="Fieldnote studio">
+    <main className="login-layout" lang={language}>
+      <section className="visual-panel" aria-label={translate(language, 'loginRegion')}>
         <img
           className="visual-image"
           src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1800&q=85"
-          alt="Warm, refined living space with elegant modern furnishings"
+          alt={translate(language, 'loginImageAlt')}
         />
         <div className="visual-shade" aria-hidden="true" />
         <a className="brand" href="#sign-in" aria-label="Fieldnote home">
@@ -90,28 +114,31 @@ function App() {
           <span>fieldnote</span>
         </a>
         <div className="visual-caption">
-          <span className="overline">A SPACE FOR YOUR NEXT CHAPTER</span>
-          <p>Make room for <em>good ideas.</em></p>
-          <span className="image-credit">STUDIO NOTES / 04</span>
+          <span className="overline">{translate(language, 'visualEyebrow')}</span>
+          <p>{translate(language, 'visualTitleLead')} <em>{translate(language, 'visualTitleAccent')}</em></p>
+          <span className="image-credit">{translate(language, 'heroCredit')}</span>
         </div>
       </section>
 
       <section className="login-panel" id="sign-in">
+        <div className="login-language">
+          <LanguageSwitcher language={language} onChange={setLanguage} />
+        </div>
         <div className="login-content">
-          <span className="overline panel-overline">YOUR STUDIO, IN ONE PLACE</span>
-          <h1>{mode === 'login' ? 'Welcome back.' : 'Create your account.'}</h1>
+          <span className="overline panel-overline">{translate(language, 'loginKicker')}</span>
+          <h1>{translate(language, mode === 'login' ? 'welcome' : 'registerTitle')}</h1>
           <p className="intro">
-            {mode === 'login' ? 'Pick up where your best work left off.' : 'Join your Fieldnote studio workspace.'}
+            {translate(language, mode === 'login' ? 'welcomeSubtitle' : 'registerSubtitle')}
           </p>
 
-          <div className="auth-switch" role="tablist" aria-label="Account options">
+          <div className="auth-switch" role="tablist" aria-label={translate(language, 'accountOptions')}>
             <button
               type="button"
               role="tab"
               aria-selected={mode === 'login'}
               onClick={() => { setMode('login'); setStatus('') }}
             >
-              Sign in
+              {translate(language, 'signIn')}
             </button>
             <button
               type="button"
@@ -119,33 +146,33 @@ function App() {
               aria-selected={mode === 'register'}
               onClick={() => { setMode('register'); setStatus('') }}
             >
-              Create account
+              {translate(language, 'createAccount')}
             </button>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="field-group">
-              <label htmlFor="email">Email address</label>
+              <label htmlFor="email">{translate(language, 'email')}</label>
               <input
                 id="email"
                 name="email"
                 type="email"
                 autoComplete="username"
-                placeholder="you@example.com"
+                placeholder={translate(language, 'emailPlaceholder')}
                 maxLength={254}
                 required
               />
             </div>
 
             <div className="field-group">
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password">{translate(language, 'password')}</label>
               <div className="password-field">
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                  placeholder={mode === 'register' ? 'At least 8 characters' : 'Enter your password'}
+                  placeholder={mode === 'register' ? translate(language, 'passwordHint') : translate(language, 'passwordPlaceholder')}
                   minLength={mode === 'register' ? 8 : undefined}
                   maxLength={72}
                   required
@@ -153,23 +180,23 @@ function App() {
                 <button
                   className="visibility-toggle"
                   type="button"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={translate(language, showPassword ? 'hidePassword' : 'showPassword')}
                   onClick={() => setShowPassword((visible) => !visible)}
                 >
-                  {showPassword ? 'Hide' : 'Show'}
+                  {translate(language, showPassword ? 'hidePassword' : 'showPassword')}
                 </button>
               </div>
             </div>
 
             {mode === 'register' ? (
               <div className="field-group">
-                <label htmlFor="confirm-password">Confirm password</label>
+                <label htmlFor="confirm-password">{translate(language, 'confirmPassword')}</label>
                 <input
                   id="confirm-password"
                   name="confirmPassword"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="Enter your password again"
+                  placeholder={translate(language, 'confirmPasswordPlaceholder')}
                   minLength={8}
                   maxLength={72}
                   required
@@ -179,23 +206,23 @@ function App() {
               <div className="form-options">
                 <label className="remember-option">
                   <input type="checkbox" name="rememberMe" />
-                  <span>Keep me signed in</span>
+                  <span>{translate(language, 'keepSignedIn')}</span>
                 </label>
-                <span className="member-hint">Secure studio access</span>
+                <span className="member-hint">{translate(language, 'secureAccess')}</span>
               </div>
             )}
 
             <button className="submit-button" type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Please wait...' : mode === 'register' ? 'Create account' : 'Sign in'}
+              {isSubmitting ? translate(language, 'pleaseWait') : translate(language, mode === 'register' ? 'createAccount' : 'signIn')}
             </button>
             <p className="form-status" role="status" aria-live="polite">{status}</p>
           </form>
 
-          <p className="member-note">Create an account or sign in to your workspace.</p>
+          <p className="member-note">{translate(language, 'createOrSignIn')}</p>
         </div>
         <footer className="page-footer">
-          <span>FIELDNOTE STUDIO</span>
-          <span>PRIVATE WORKSPACE</span>
+          <span>{translate(language, 'footerStudio')}</span>
+          <span>{translate(language, 'footerPrivate')}</span>
         </footer>
       </section>
     </main>
