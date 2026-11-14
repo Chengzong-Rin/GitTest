@@ -29,6 +29,7 @@ const examTracks = [
 
 const durationSeconds = 15 * 60
 const emptyQuestions = []
+const practiceYearOptions = [2019, 2020, 2021, 2022, 2023, 2024, 2025]
 const historyDateFormatters = {
   ja: new Intl.DateTimeFormat('ja-JP'),
   en: new Intl.DateTimeFormat('en-US'),
@@ -123,6 +124,10 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
   const [practiceMode, setPracticeMode] = useState('')
   const [practiceScore, setPracticeScore] = useState(null)
   const [customCounts, setCustomCounts] = useState({ itPassport: 10, fe: 10 })
+  const [customYearRanges, setCustomYearRanges] = useState({
+    itPassport: { from: practiceYearOptions[0], to: practiceYearOptions.at(-1) },
+    fe: { from: practiceYearOptions[0], to: practiceYearOptions.at(-1) },
+  })
   const [error, setError] = useState('')
   const [timeLeft, setTimeLeft] = useState(durationSeconds)
   const [result, setResult] = useState(null)
@@ -135,7 +140,7 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
   const isPractice = view === 'practice'
   const sourceQuestions = isPractice
     ? practiceQuestions
-    : examId ? examQuestionSets[examId] : emptyQuestions
+    : examId ? examQuestionSets[examId].slice(0, 10) : emptyQuestions
   const questions = sourceQuestions.map((question) => localizeQuestion(question, language))
   const currentQuestion = questions[currentIndex]
   const answeredCount = Object.keys(answers).length
@@ -217,11 +222,20 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
   }
 
   function startCustomPractice(nextExamId) {
+    const availableQuestions = getCustomQuestions(nextExamId)
+    if (!availableQuestions.length) return
     const count = Math.max(1, Math.min(
-      examQuestionSets[nextExamId].length,
+      availableQuestions.length,
       Number(customCounts[nextExamId]) || 1,
     ))
-    startPractice(shuffleQuestions(examQuestionSets[nextExamId]).slice(0, count), `custom-${nextExamId}`)
+    startPractice(shuffleQuestions(availableQuestions).slice(0, count), `custom-${nextExamId}`)
+  }
+
+  function getCustomQuestions(nextExamId) {
+    const { from, to } = customYearRanges[nextExamId]
+    return examQuestionSets[nextExamId].filter(
+      (question) => question.practiceYear >= from && question.practiceYear <= to,
+    )
   }
 
   function finishPractice() {
@@ -461,39 +475,88 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
                 )
               })}
 
-              {examTracks.map((exam, index) => (
-                <article className={`practice-mode-card ${exam.accent}`} key={`custom-${exam.id}`}>
-                  <span className="practice-mode-kicker">{String(index + 4).padStart(2, '0')} / CUSTOM</span>
-                  <h3>{translate(language, 'customMode')} · {getTrackName(exam)}</h3>
-                  <p>{translate(language, 'customModeDescription')}</p>
-                  <label className="custom-count-control">
-                    <span>{translate(language, 'questionCount')}</span>
-                    <input
-                      type="number"
-                      min="1"
-                      max={examQuestionSets[exam.id].length}
-                      value={customCounts[exam.id]}
-                      aria-label={translate(language, 'questionCountFor', { exam: getTrackName(exam) })}
-                      onChange={(event) => {
-                        const value = event.target.value
-                        setCustomCounts((previous) => ({
-                          ...previous,
-                          [exam.id]: value === '' ? '' : Number(value),
-                        }))
-                      }}
-                    />
-                    <span>/ {examQuestionSets[exam.id].length}</span>
-                  </label>
-                  <button
-                    className="start-button"
-                    type="button"
-                    disabled={!Number(customCounts[exam.id])}
-                    onClick={() => startCustomPractice(exam.id)}
-                  >
-                    {translate(language, 'startPractice')} <span aria-hidden="true">↗</span>
-                  </button>
-                </article>
-              ))}
+              {examTracks.map((exam, index) => {
+                const customQuestions = getCustomQuestions(exam.id)
+                const selectedCount = customCounts[exam.id] === ''
+                  ? ''
+                  : Math.min(Number(customCounts[exam.id]) || 1, customQuestions.length)
+                const yearRange = customYearRanges[exam.id]
+                return (
+                  <article className={`practice-mode-card ${exam.accent}`} key={`custom-${exam.id}`}>
+                    <span className="practice-mode-kicker">{String(index + 4).padStart(2, '0')} / CUSTOM</span>
+                    <h3>{translate(language, 'customMode')} · {getTrackName(exam)}</h3>
+                    <p>{translate(language, 'customModeDescription')}</p>
+                    <div className="custom-year-range">
+                      <span>{translate(language, 'practiceYearRange')}</span>
+                      <div className="custom-year-inputs">
+                        <label>
+                          <span>{translate(language, 'fromYear')}</span>
+                          <select
+                            value={yearRange.from}
+                            aria-label={translate(language, 'fromYearFor', { exam: getTrackName(exam) })}
+                            onChange={(event) => {
+                              const from = Number(event.target.value)
+                              setCustomYearRanges((previous) => ({
+                                ...previous,
+                                [exam.id]: { from, to: Math.max(from, previous[exam.id].to) },
+                              }))
+                            }}
+                          >
+                            {practiceYearOptions.map((year) => (
+                              <option key={year} value={year} disabled={year > yearRange.to}>{year}</option>
+                            ))}
+                          </select>
+                        </label>
+                        <span className="year-range-separator">–</span>
+                        <label>
+                          <span>{translate(language, 'toYear')}</span>
+                          <select
+                            value={yearRange.to}
+                            aria-label={translate(language, 'toYearFor', { exam: getTrackName(exam) })}
+                            onChange={(event) => {
+                              const to = Number(event.target.value)
+                              setCustomYearRanges((previous) => ({
+                                ...previous,
+                                [exam.id]: { from: Math.min(previous[exam.id].from, to), to },
+                              }))
+                            }}
+                          >
+                            {practiceYearOptions.map((year) => (
+                              <option key={year} value={year} disabled={year < yearRange.from}>{year}</option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    </div>
+                    <label className="custom-count-control">
+                      <span>{translate(language, 'questionCount')}</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max={customQuestions.length}
+                        value={selectedCount}
+                        aria-label={translate(language, 'questionCountFor', { exam: getTrackName(exam) })}
+                        onChange={(event) => {
+                          const value = event.target.value
+                          setCustomCounts((previous) => ({
+                            ...previous,
+                            [exam.id]: value === '' ? '' : Math.min(Number(value), customQuestions.length),
+                          }))
+                        }}
+                      />
+                      <span>/ {customQuestions.length}</span>
+                    </label>
+                    <button
+                      className="start-button"
+                      type="button"
+                      disabled={!customQuestions.length || !Number(customCounts[exam.id])}
+                      onClick={() => startCustomPractice(exam.id)}
+                    >
+                      {translate(language, 'startPractice')} <span aria-hidden="true">↗</span>
+                    </button>
+                  </article>
+                )
+              })}
             </div>
             <p className="practice-modes-note">{translate(language, 'reviewHistoryHint')}</p>
           </section>
