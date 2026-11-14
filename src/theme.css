@@ -13,13 +13,67 @@
 
 :root[data-theme='dark'] .exam-topbar,
 :root[data-theme='dark'] .track-card,
+:root[data-theme='dark'] .practice-mode-card,
 :root[data-theme='dark'] .answer-option,
 :root[data-theme='dark'] .auth-switch,
 :root[data-theme='dark'] .language-switch,
-:root[data-theme='dark'] .theme-switch {
+:root[data-theme='dark'] .theme-switch,
+:root[data-theme='dark'] .ai-chat-panel {
   border-color: #3b4b40;
   background: #202c24;
   color: #d7e1d8;
+}
+
+:root[data-theme='dark'] .ai-chat-header,
+:root[data-theme='dark'] .ai-chat-form {
+  border-color: #39493e;
+  background: #1b2820;
+}
+
+:root[data-theme='dark'] .ai-chat-heading h2,
+:root[data-theme='dark'] .ai-welcome p {
+  color: #e1e9e2;
+}
+
+:root[data-theme='dark'] .ai-chat-heading p,
+:root[data-theme='dark'] .ai-welcome > span:last-child,
+:root[data-theme='dark'] .ai-form-footer > span,
+:root[data-theme='dark'] .ai-screenshot-option,
+:root[data-theme='dark'] .ai-screenshot-option small {
+  color: #a4b1a7;
+}
+
+:root[data-theme='dark'] .ai-message-model p {
+  background: #2b3a2f;
+  color: #d7e1d8;
+}
+
+:root[data-theme='dark'] .ai-avatar,
+:root[data-theme='dark'] .ai-message-mark,
+:root[data-theme='dark'] .ai-welcome-mark {
+  background: #2b4032;
+  color: #c7dfcc;
+}
+
+:root[data-theme='dark'] .ai-chat-form textarea {
+  border-color: #435448;
+  background: #202c24;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .ai-icon-button {
+  color: #a4b1a7;
+}
+
+:root[data-theme='dark'] .ai-icon-button:hover {
+  background: #2b3a2f;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .ai-resize-handle:hover,
+:root[data-theme='dark'] .ai-resize-handle:focus-visible {
+  background: #2b4032;
+  color: #e0e8e1;
 }
 
 :root[data-theme='dark'] .auth-switch button[aria-selected='true'],
@@ -34,6 +88,7 @@
 :root[data-theme='dark'] .track-card h3,
 :root[data-theme='dark'] .section-heading h2,
 :root[data-theme='dark'] .question-panel h1,
+:root[data-theme='dark'] .practice-mode-card h3,
 :root[data-theme='dark'] .test-title,
 :root[data-theme='dark'] .my-page-section-heading h2,
 :root[data-theme='dark'] .profile-copy h1,
@@ -50,6 +105,8 @@
 :root[data-theme='dark'] .intro,
 :root[data-theme='dark'] .dashboard-intro,
 :root[data-theme='dark'] .track-card > p,
+:root[data-theme='dark'] .practice-mode-card > p,
+:root[data-theme='dark'] .practice-modes-note,
 :root[data-theme='dark'] .section-heading > span,
 :root[data-theme='dark'] .empty-history,
 :root[data-theme='dark'] .source-note,
@@ -66,6 +123,8 @@
 :root[data-theme='dark'] .session-copy > span,
 :root[data-theme='dark'] .session-current-label,
 :root[data-theme='dark'] .review-answer,
+:root[data-theme='dark'] .practice-session-label,
+:root[data-theme='dark'] .custom-count-control,
 :root[data-theme='dark'] .answer-instruction,
 :root[data-theme='dark'] .timer-label,
 :root[data-theme='dark'] .member-note {
@@ -131,6 +190,56 @@
   border-color: #5f9270;
   background: #293d30;
   color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .practice-feedback {
+  border-left-color: #5f9270;
+  background: #293d30;
+  color: #d7e1d8;
+}
+
+:root[data-theme='dark'] .practice-feedback.feedback-incorrect {
+  border-left-color: #d29368;
+  background: #3a3028;
+}
+
+:root[data-theme='dark'] .practice-feedback > strong {
+  color: #b7d1bd;
+}
+
+:root[data-theme='dark'] .practice-feedback.feedback-incorrect > strong {
+  color: #e3b296;
+}
+
+:root[data-theme='dark'] .practice-feedback p:last-child {
+  color: #c2cec5;
+}
+
+:root[data-theme='dark'] .answer-option.practice-correct,
+:root[data-theme='dark'] .answer-option.practice-correct:hover {
+  border-color: #5f9270;
+  background: #293d30;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .answer-option.practice-incorrect,
+:root[data-theme='dark'] .answer-option.practice-incorrect:hover {
+  border-color: #a96850;
+  background: #3a3028;
+  color: #e3c9a7;
+}
+
+:root[data-theme='dark'] .custom-count-control input {
+  border-color: #435448;
+  background: #1b2820;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .practice-mode-card .start-button:disabled,
+:root[data-theme='dark'] .question-controls .next-button:disabled {
+  border-color: #435448;
+  background: #2b3a2f;
+  color: #99a89d;
 }
 
 :root[data-theme='dark'] .my-page-profile,
