@@ -50,6 +50,36 @@ export const questionTranslations = {
       options: ['IMAP', 'SMTP', 'POP3', 'SNMP'],
       explanation: 'SMTP is used to send email and transfer it between mail servers. IMAP and POP3 are primarily used to access received messages.',
     },
+    'itp-11': {
+      prompt: 'Which metric represents a company’s sales as a proportion of total sales in its market?',
+      options: ['Operating margin', 'Market share', 'Equity ratio', 'Labor productivity'],
+      explanation: 'Market share is the proportion of total market sales or volume accounted for by a company.',
+    },
+    'itp-12': {
+      prompt: 'Which authentication method uses a password together with a verification code sent to a smartphone?',
+      options: ['Single sign-on', 'Multi-factor authentication', 'Federated sign-on', 'Access control list'],
+      explanation: 'Multi-factor authentication strengthens identity checks by combining different factor types, such as knowledge and possession.',
+    },
+    'itp-13': {
+      prompt: 'Which project management method identifies the longest sequence of dependent tasks that determines the completion date?',
+      options: ['Critical path method', 'Brainstorming', 'Break-even analysis', 'Benchmarking'],
+      explanation: 'The critical path is the sequence of tasks whose delay would delay the whole project. It is monitored closely during scheduling.',
+    },
+    'itp-14': {
+      prompt: 'In a relational database, what is used to uniquely identify each row in a table?',
+      options: ['Foreign key', 'Primary key', 'View', 'Index name'],
+      explanation: 'A primary key is a column or combination of columns that uniquely identifies each row and cannot contain duplicate or NULL values.',
+    },
+    'itp-15': {
+      prompt: 'Which metric evaluates an investment by discounting future cash flows to the present and subtracting the initial investment?',
+      options: ['Net present value (NPV)', 'Operating margin', 'Total asset turnover', 'Break-even ratio'],
+      explanation: 'Net present value (NPV) is the total present value of future cash flows minus the initial investment.',
+    },
+    'itp-16': {
+      prompt: 'What is the processing approach in which multiple computers coordinate over a network to share work or resources?',
+      options: ['Distributed processing', 'Centralized processing', 'Batch processing', 'Sequential processing'],
+      explanation: 'Distributed processing uses multiple networked computers to share processing tasks, data, or resources.',
+    },
     'fe-01': {
       prompt: 'What decimal value does the hexadecimal number D6 represent as an 8-bit two’s-complement integer?',
       options: ['−42', '−38', '42', '214'],
@@ -99,6 +129,36 @@ export const questionTranslations = {
       prompt: 'Which method uses polynomial arithmetic to calculate a value for detecting errors in transmitted data?',
       options: ['CRC', 'DNS', 'NAT', 'ARP'],
       explanation: 'A cyclic redundancy check (CRC) treats data as a polynomial over GF(2) and uses a generator polynomial to calculate a check value for error detection.',
+    },
+    'fe-11': {
+      prompt: 'How many bytes are in 1 KiB (kibibyte)?',
+      options: ['100', '1,000', '1,024', '10,000'],
+      explanation: 'A kibibyte is 2 to the tenth power bytes, or 1,024 bytes. A kilobyte (kB) can mean 1,000 bytes.',
+    },
+    'fe-12': {
+      prompt: 'Which data structure returns the most recently stored item first?',
+      options: ['Queue', 'Stack', 'Tree', 'Hash table'],
+      explanation: 'A stack uses last-in, first-out (LIFO) ordering: the most recently stored item is removed first.',
+    },
+    'fe-13': {
+      prompt: 'In a database transaction, which property means that all operations succeed together or are all rolled back?',
+      options: ['Atomicity', 'Consistency', 'Isolation', 'Durability'],
+      explanation: 'Atomicity treats a transaction as one unit: either all of its operations are applied or none of them are.',
+    },
+    'fe-14': {
+      prompt: 'Which protocol encrypts communication between a web browser and server and can verify the server using a certificate?',
+      options: ['TLS', 'DHCP', 'SNMP', 'NTP'],
+      explanation: 'Transport Layer Security (TLS) provides encryption and authentication for secure communication, including HTTPS.',
+    },
+    'fe-15': {
+      prompt: 'Why is a different random value added to each password before hashing it for storage?',
+      options: ['To prevent identical passwords from producing identical stored hashes', 'To make the password recoverable from its hash', 'To increase network speed', 'To shorten public keys'],
+      explanation: 'A unique salt makes hashes different even when passwords match and makes precomputed hash attacks more difficult.',
+    },
+    'fe-16': {
+      prompt: 'Which component near the CPU temporarily stores frequently used data to reduce the speed gap with main memory?',
+      options: ['Cache memory', 'Secondary storage', 'Virtual memory', 'Input/output buffer'],
+      explanation: 'Cache memory is fast storage close to the CPU that holds frequently used data or instructions to reduce memory access time.',
     },
   },
   th: {
@@ -152,6 +212,36 @@ export const questionTranslations = {
       options: ['IMAP', 'SMTP', 'POP3', 'SNMP'],
       explanation: 'SMTP ใช้ส่งอีเมลและถ่ายโอนอีเมลระหว่างเซิร์ฟเวอร์ ส่วน IMAP และ POP3 ใช้เข้าถึงอีเมลที่ได้รับเป็นหลัก',
     },
+    'itp-11': {
+      prompt: 'ตัวชี้วัดใดแสดงสัดส่วนยอดขายของบริษัทเมื่อเทียบกับยอดขายทั้งหมดในตลาด?',
+      options: ['อัตรากำไรจากการดำเนินงาน', 'ส่วนแบ่งตลาด', 'อัตราส่วนทุน', 'ผลิตภาพแรงงาน'],
+      explanation: 'ส่วนแบ่งตลาดคือสัดส่วนของยอดขายหรือปริมาณขายทั้งหมดในตลาดที่บริษัทครองอยู่',
+    },
+    'itp-12': {
+      prompt: 'วิธีการยืนยันตัวตนใดใช้รหัสผ่านร่วมกับรหัสยืนยันที่ส่งไปยังสมาร์ตโฟน?',
+      options: ['การลงชื่อเข้าใช้ครั้งเดียว', 'การยืนยันตัวตนหลายปัจจัย', 'การลงชื่อเข้าใช้แบบรวมศูนย์', 'รายการควบคุมการเข้าถึง'],
+      explanation: 'การยืนยันตัวตนหลายปัจจัยเพิ่มความปลอดภัยโดยใช้ปัจจัยต่างประเภท เช่น สิ่งที่รู้และสิ่งที่ครอบครอง',
+    },
+    'itp-13': {
+      prompt: 'วิธีการจัดการโครงการใดใช้ระบุลำดับงานที่ขึ้นต่อกันและยาวที่สุด ซึ่งกำหนดวันเสร็จสิ้นโครงการ?',
+      options: ['วิธีเส้นทางวิกฤต', 'การระดมสมอง', 'การวิเคราะห์จุดคุ้มทุน', 'การเทียบมาตรฐาน'],
+      explanation: 'เส้นทางวิกฤตคือลำดับงานที่หากล่าช้าจะทำให้โครงการทั้งหมดล่าช้าด้วย จึงต้องติดตามอย่างใกล้ชิด',
+    },
+    'itp-14': {
+      prompt: 'ในฐานข้อมูลเชิงสัมพันธ์ สิ่งใดใช้ระบุแต่ละแถวในตารางให้ไม่ซ้ำกัน?',
+      options: ['คีย์นอก', 'คีย์หลัก', 'วิว', 'ชื่อดัชนี'],
+      explanation: 'คีย์หลักคือคอลัมน์หรือชุดคอลัมน์ที่ระบุแต่ละแถวได้ไม่ซ้ำ และต้องไม่มีค่าซ้ำหรือค่า NULL',
+    },
+    'itp-15': {
+      prompt: 'ตัวชี้วัดใดประเมินการลงทุนโดยคิดลดกระแสเงินสดในอนาคตเป็นมูลค่าปัจจุบันแล้วหักเงินลงทุนเริ่มแรก?',
+      options: ['มูลค่าปัจจุบันสุทธิ (NPV)', 'อัตรากำไรจากการดำเนินงาน', 'อัตราหมุนเวียนสินทรัพย์รวม', 'อัตราส่วนจุดคุ้มทุน'],
+      explanation: 'มูลค่าปัจจุบันสุทธิ (NPV) คือผลรวมมูลค่าปัจจุบันของกระแสเงินสดในอนาคต หักด้วยเงินลงทุนเริ่มแรก',
+    },
+    'itp-16': {
+      prompt: 'แนวทางการประมวลผลใดที่คอมพิวเตอร์หลายเครื่องทำงานร่วมกันผ่านเครือข่ายเพื่อแบ่งงานหรือใช้ทรัพยากรร่วมกัน?',
+      options: ['การประมวลผลแบบกระจาย', 'การประมวลผลแบบรวมศูนย์', 'การประมวลผลแบบกลุ่ม', 'การประมวลผลตามลำดับ'],
+      explanation: 'การประมวลผลแบบกระจายใช้คอมพิวเตอร์หลายเครื่องที่เชื่อมต่อเครือข่ายเพื่อแบ่งงาน ข้อมูล หรือทรัพยากร',
+    },
     'fe-01': {
       prompt: 'เลขฐานสิบหก D6 มีค่าเป็นเท่าใดเมื่อแทนจำนวนเต็มแบบ two’s complement ขนาด 8 บิต?',
       options: ['−42', '−38', '42', '214'],
@@ -201,6 +291,36 @@ export const questionTranslations = {
       prompt: 'วิธีใดใช้การคำนวณพหุนามเพื่อหาค่าตรวจสอบสำหรับตรวจจับข้อผิดพลาดในข้อมูลที่ส่ง?',
       options: ['CRC', 'DNS', 'NAT', 'ARP'],
       explanation: 'Cyclic Redundancy Check (CRC) มองข้อมูลเป็นพหุนามเหนือ GF(2) และใช้พหุนามกำเนิดเพื่อคำนวณค่าตรวจสอบสำหรับตรวจจับข้อผิดพลาด',
+    },
+    'fe-11': {
+      prompt: '1 KiB (kibibyte) มีจำนวนกี่ไบต์?',
+      options: ['100', '1,000', '1,024', '10,000'],
+      explanation: '1 KiB เท่ากับ 2 ยกกำลัง 10 หรือ 1,024 ไบต์ ส่วน 1 kB อาจหมายถึง 1,000 ไบต์',
+    },
+    'fe-12': {
+      prompt: 'โครงสร้างข้อมูลใดนำข้อมูลที่จัดเก็บล่าสุดออกมาก่อน?',
+      options: ['คิว', 'สแตก', 'ต้นไม้', 'ตารางแฮช'],
+      explanation: 'สแตกใช้หลัก LIFO (เข้าทีหลังออกก่อน) ข้อมูลที่จัดเก็บล่าสุดจึงถูกนำออกก่อน',
+    },
+    'fe-13': {
+      prompt: 'ในธุรกรรมฐานข้อมูล คุณสมบัติใดหมายความว่าการดำเนินการทั้งหมดสำเร็จพร้อมกันหรือถูกยกเลิกทั้งหมด?',
+      options: ['ความเป็นหน่วยเดียว', 'ความสอดคล้อง', 'การแยกจากกัน', 'ความคงทน'],
+      explanation: 'Atomicity จัดการธุรกรรมเป็นหน่วยเดียว โดยดำเนินการทั้งหมดหรือยกเลิกทั้งหมด',
+    },
+    'fe-14': {
+      prompt: 'โปรโตคอลใดเข้ารหัสการสื่อสารระหว่างเว็บเบราว์เซอร์กับเซิร์ฟเวอร์ และตรวจสอบเซิร์ฟเวอร์ด้วยใบรับรองได้?',
+      options: ['TLS', 'DHCP', 'SNMP', 'NTP'],
+      explanation: 'Transport Layer Security (TLS) ให้การเข้ารหัสและการยืนยันตัวตนสำหรับการสื่อสารที่ปลอดภัย รวมถึง HTTPS',
+    },
+    'fe-15': {
+      prompt: 'เหตุใดจึงเพิ่มค่าสุ่มที่แตกต่างกันให้กับรหัสผ่านแต่ละรายการก่อนคำนวณแฮชเพื่อจัดเก็บ?',
+      options: ['เพื่อไม่ให้รหัสผ่านเดียวกันได้ค่าแฮชที่จัดเก็บเหมือนกัน', 'เพื่อกู้คืนรหัสผ่านจากค่าแฮชได้', 'เพื่อเพิ่มความเร็วเครือข่าย', 'เพื่อทำให้กุญแจสาธารณะสั้นลง'],
+      explanation: 'Salt ที่ไม่ซ้ำกันทำให้รหัสผ่านเดียวกันได้ค่าแฮชต่างกัน และทำให้การโจมตีด้วยตารางแฮชที่คำนวณไว้ล่วงหน้าทำได้ยากขึ้น',
+    },
+    'fe-16': {
+      prompt: 'ส่วนประกอบใดที่อยู่ใกล้ CPU และเก็บข้อมูลที่ใช้บ่อยชั่วคราวเพื่อลดช่องว่างความเร็วกับหน่วยความจำหลัก?',
+      options: ['แคชเมมโมรี', 'หน่วยเก็บข้อมูลรอง', 'หน่วยความจำเสมือน', 'บัฟเฟอร์รับส่งข้อมูล'],
+      explanation: 'แคชเมมโมรีเป็นหน่วยความจำความเร็วสูงใกล้ CPU ใช้เก็บข้อมูลหรือคำสั่งที่เรียกใช้บ่อยเพื่อลดเวลาเข้าถึงหน่วยความจำ',
     },
   },
 }
