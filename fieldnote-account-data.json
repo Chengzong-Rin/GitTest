@@ -1,0 +1,50 @@
+{
+  "exportedAt": "2026-11-14T06:15:30.173Z",
+  "profile": {
+    "displayName": "Study Pilot",
+    "email": "settings-check-1794636858639@example.test",
+    "createdAt": "2026-11-14 06:14:20"
+  },
+  "mockExamHistory": [
+    {
+      "examId": "itPassport",
+      "correct": 0,
+      "total": 10,
+      "categoryResults": {
+        "ストラテジ": {
+          "correct": 0,
+          "total": 3
+        },
+        "マネジメント": {
+          "correct": 0,
+          "total": 3
+        },
+        "テクノロジ": {
+          "correct": 0,
+          "total": 4
+        }
+      },
+      "finishedAt": "2026-11-14T06:14:21.224Z",
+      "finishedOn": {
+        "ja": "2026/11/14",
+        "en": "11/14/2026",
+        "th": "14/11/2569"
+      }
+    }
+  ],
+  "savedQuestions": [
+    {
+      "id": "itp-01",
+      "category": "ストラテジ",
+      "prompt": "A company views growth in a new customer segment as a business opportunity. Which SWOT element is this?",
+      "options": [
+        "Strength",
+        "Weakness",
+        "Opportunity",
+        "Threat"
+      ],
+      "answer": 2,
+      "explanation": "In SWOT, opportunities and threats are external factors, while strengths and weaknesses are internal. Growth in a customer segment is an external opportunity."
+    }
+  ]
+}

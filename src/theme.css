@@ -1,0 +1,218 @@
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  background: #151d18;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] body,
+:root[data-theme='dark'] .login-panel,
+:root[data-theme='dark'] .exam-app {
+  background: #151d18;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .exam-topbar,
+:root[data-theme='dark'] .track-card,
+:root[data-theme='dark'] .answer-option,
+:root[data-theme='dark'] .auth-switch,
+:root[data-theme='dark'] .language-switch,
+:root[data-theme='dark'] .theme-switch {
+  border-color: #3b4b40;
+  background: #202c24;
+  color: #d7e1d8;
+}
+
+:root[data-theme='dark'] .auth-switch button[aria-selected='true'],
+:root[data-theme='dark'] .language-switch button[aria-pressed='true'],
+:root[data-theme='dark'] .theme-switch button[aria-pressed='true'] {
+  background: #477458;
+  color: #fff;
+}
+
+:root[data-theme='dark'] .login-content h1,
+:root[data-theme='dark'] .exam-heading-row h1,
+:root[data-theme='dark'] .track-card h3,
+:root[data-theme='dark'] .section-heading h2,
+:root[data-theme='dark'] .question-panel h1,
+:root[data-theme='dark'] .test-title,
+:root[data-theme='dark'] .my-page-section-heading h2,
+:root[data-theme='dark'] .profile-copy h1,
+:root[data-theme='dark'] .review-item h3,
+:root[data-theme='dark'] .stat-item strong,
+:root[data-theme='dark'] .stamp-number,
+:root[data-theme='dark'] .session-copy strong,
+:root[data-theme='dark'] .progress-item-heading strong,
+:root[data-theme='dark'] .saved-question-row p,
+:root[data-theme='dark'] .weak-topic-heading strong {
+  color: #e1e9e2;
+}
+
+:root[data-theme='dark'] .intro,
+:root[data-theme='dark'] .dashboard-intro,
+:root[data-theme='dark'] .track-card > p,
+:root[data-theme='dark'] .section-heading > span,
+:root[data-theme='dark'] .empty-history,
+:root[data-theme='dark'] .source-note,
+:root[data-theme='dark'] .profile-copy p,
+:root[data-theme='dark'] .account-email,
+:root[data-theme='dark'] .my-page-identity > span,
+:root[data-theme='dark'] .my-page-identity strong,
+:root[data-theme='dark'] .stat-item > span,
+:root[data-theme='dark'] .history-row,
+:root[data-theme='dark'] .my-history-row,
+:root[data-theme='dark'] .my-page-empty > span,
+:root[data-theme='dark'] .settings-helper,
+:root[data-theme='dark'] .settings-choice-row p,
+:root[data-theme='dark'] .session-copy > span,
+:root[data-theme='dark'] .session-current-label,
+:root[data-theme='dark'] .review-answer,
+:root[data-theme='dark'] .answer-instruction,
+:root[data-theme='dark'] .timer-label,
+:root[data-theme='dark'] .member-note {
+  color: #a4b1a7;
+}
+
+:root[data-theme='dark'] .login-content .panel-overline,
+:root[data-theme='dark'] .eyebrow,
+:root[data-theme='dark'] .exam-brand,
+:root[data-theme='dark'] .my-page-back,
+:root[data-theme='dark'] .my-page-nav,
+:root[data-theme='dark'] .back-button,
+:root[data-theme='dark'] .previous-button,
+:root[data-theme='dark'] .signout-button,
+:root[data-theme='dark'] .small-action-button,
+:root[data-theme='dark'] .exam-progress-item > button {
+  color: #a8c6ae;
+}
+
+:root[data-theme='dark'] .field-group input,
+:root[data-theme='dark'] .settings-field input {
+  border-color: #435448;
+  background: #1b2820;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .field-group input::placeholder {
+  color: #85958a;
+}
+
+:root[data-theme='dark'] .field-group > label,
+:root[data-theme='dark'] .settings-field label {
+  color: #c1ccc3;
+}
+
+:root[data-theme='dark'] .remember-option,
+:root[data-theme='dark'] .answer-option,
+:root[data-theme='dark'] .option-letter,
+:root[data-theme='dark'] .track-card-bottom > span,
+:root[data-theme='dark'] .topic-list li,
+:root[data-theme='dark'] .category-label,
+:root[data-theme='dark'] .history-exam,
+:root[data-theme='dark'] .history-score,
+:root[data-theme='dark'] .my-history-row strong,
+:root[data-theme='dark'] .my-history-score,
+:root[data-theme='dark'] .review-explanation {
+  color: #c2cec5;
+}
+
+:root[data-theme='dark'] .topic-list li,
+:root[data-theme='dark'] .category-label,
+:root[data-theme='dark'] .question-index,
+:root[data-theme='dark'] .option-letter,
+:root[data-theme='dark'] .settings-secondary-button,
+:root[data-theme='dark'] .theme-switch,
+:root[data-theme='dark'] .language-switch {
+  border-color: #435448;
+  background-color: #202c24;
+}
+
+:root[data-theme='dark'] .answer-option.selected,
+:root[data-theme='dark'] .question-index.answered {
+  border-color: #5f9270;
+  background: #293d30;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .my-page-profile,
+:root[data-theme='dark'] .my-page-identity,
+:root[data-theme='dark'] .my-page-stats,
+:root[data-theme='dark'] .history-list,
+:root[data-theme='dark'] .history-row,
+:root[data-theme='dark'] .my-history-row,
+:root[data-theme='dark'] .my-history-list,
+:root[data-theme='dark'] .weak-topic-list,
+:root[data-theme='dark'] .weak-topic-row,
+:root[data-theme='dark'] .saved-question-list,
+:root[data-theme='dark'] .saved-question-row,
+:root[data-theme='dark'] .account-settings-section,
+:root[data-theme='dark'] .exam-progress-item,
+:root[data-theme='dark'] .language-preferences,
+:root[data-theme='dark'] .exam-progress {
+  border-color: #39493e;
+}
+
+:root[data-theme='dark'] .profile-avatar,
+:root[data-theme='dark'] .settings-avatar {
+  background: #2b4032;
+  color: #c7dfcc;
+}
+
+:root[data-theme='dark'] .profile-status,
+:root[data-theme='dark'] .progress-item-heading > span,
+:root[data-theme='dark'] .my-page-empty p,
+:root[data-theme='dark'] .weak-topic-detail,
+:root[data-theme='dark'] .history-exam,
+:root[data-theme='dark'] .history-score {
+  color: #b7d1bd;
+}
+
+:root[data-theme='dark'] .settings-secondary-button {
+  color: #b7d1bd;
+}
+
+:root[data-theme='dark'] .theme-switch button,
+:root[data-theme='dark'] .language-switch button {
+  color: #a4b1a7;
+}
+
+:root[data-theme='dark'] .recovery-codes-panel {
+  border-left-color: #d29368;
+  background: #342d23;
+}
+
+:root[data-theme='dark'] .recovery-codes-panel > strong,
+:root[data-theme='dark'] .recovery-codes-panel > p {
+  color: #e3c9a7;
+}
+
+:root[data-theme='dark'] .recovery-code-grid code,
+:root[data-theme='dark'] .two-factor-qr {
+  background: #fff;
+  color: #30291f;
+}
+
+:root[data-theme='dark'] .delete-account-zone {
+  border-color: #654139;
+}
+
+:root[data-theme='dark'] .delete-account-zone > strong,
+:root[data-theme='dark'] .delete-account-zone > p {
+  color: #e5a18e;
+}
+
+:root[data-theme='dark'] .delete-warning {
+  border-left-color: #d1765c;
+  background: #3a2825;
+  color: #f0c4b8;
+}
+
+:root[data-theme='dark'] .member-hint,
+:root[data-theme='dark'] .my-page-section-heading > span,
+:root[data-theme='dark'] .saved-question-category {
+  color: #99a89d;
+}
+
+:root[data-theme='dark'] .auth-switch button,
+:root[data-theme='dark'] .theme-switch button[aria-pressed='true'] {
+  color: #e0e8e1;
+}

@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useState } from 'react'
-import LanguageSwitcher from './LanguageSwitcher.jsx'
+import MyPage from './MyPage.jsx'
 import { examQuestionSets } from './mockQuestions.js'
 import { localizeQuestion } from './questionTranslations.js'
 import { translate, translateCategory } from './translations.js'
@@ -42,6 +42,14 @@ function readHistory(storageKey) {
   }
 }
 
+function readBookmarks(storageKey) {
+  try {
+    return JSON.parse(localStorage.getItem(storageKey) || '[]')
+  } catch {
+    return []
+  }
+}
+
 function formatTime(seconds) {
   const minutes = Math.floor(seconds / 60).toString().padStart(2, '0')
   const remainder = (seconds % 60).toString().padStart(2, '0')
@@ -65,21 +73,28 @@ function getCompletionTime() {
   }
 }
 
-function MockExam({ user, language, onLanguageChange, onSignOut }) {
+function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUserUpdate, onAccountDeleted, onSignOut }) {
   const storageKey = `fieldnote-mock-history:${user.id}`
+  const bookmarkStorageKey = `fieldnote-mock-bookmarks:${user.id}`
   const [view, setView] = useState('dashboard')
+  const [viewBeforeMyPage, setViewBeforeMyPage] = useState('dashboard')
   const [examId, setExamId] = useState(null)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [answers, setAnswers] = useState({})
   const [timeLeft, setTimeLeft] = useState(durationSeconds)
   const [result, setResult] = useState(null)
   const [history, setHistory] = useState(() => readHistory(storageKey))
+  const [bookmarkedIds, setBookmarkedIds] = useState(() => readBookmarks(bookmarkStorageKey))
 
   const currentExam = examTracks.find((exam) => exam.id === examId)
   const sourceQuestions = examId ? examQuestionSets[examId] : emptyQuestions
   const questions = sourceQuestions.map((question) => localizeQuestion(question, language))
   const currentQuestion = questions[currentIndex]
   const answeredCount = Object.keys(answers).length
+  const bookmarkedQuestions = Object.values(examQuestionSets)
+    .flat()
+    .filter((question) => bookmarkedIds.includes(question.id))
+    .map((question) => localizeQuestion(question, language))
 
   function startExam(nextExamId) {
     setExamId(nextExamId)
@@ -90,13 +105,35 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
     setView('test')
   }
 
+  function toggleBookmark(questionId) {
+    setBookmarkedIds((previous) => {
+      const next = previous.includes(questionId)
+        ? previous.filter((id) => id !== questionId)
+        : [...previous, questionId]
+      try {
+        localStorage.setItem(bookmarkStorageKey, JSON.stringify(next))
+      } catch {
+        return previous
+      }
+      return next
+    })
+  }
+
   function finishExam() {
     if (!currentExam || !questions.length) return
 
+    const categoryResults = {}
+    for (const question of sourceQuestions) {
+      const category = question.category
+      categoryResults[category] ??= { correct: 0, total: 0 }
+      categoryResults[category].total += 1
+      if (answers[question.id] === question.answer) categoryResults[category].correct += 1
+    }
     const finishedResult = {
       examId,
       correct: getScore(questions, answers),
       total: questions.length,
+      categoryResults,
       ...getCompletionTime(),
     }
     const nextHistory = [finishedResult, ...history].slice(0, 8)
@@ -129,6 +166,15 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
     setResult(null)
   }
 
+  function openMyPage() {
+    setViewBeforeMyPage(view)
+    setView('mypage')
+  }
+
+  function returnFromMyPage() {
+    setView(viewBeforeMyPage)
+  }
+
   function getTrackName(exam) {
     return translate(language, exam.id === 'itPassport' ? 'itPassport' : 'feExam')
   }
@@ -138,7 +184,7 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
   }
 
   return (
-    <div className="exam-app" lang={language}>
+    <div className="exam-app" lang={language} data-theme={theme}>
       <header className="exam-topbar">
         <a className="exam-brand" href="#home" onClick={(event) => { event.preventDefault(); returnToDashboard() }}>
           <span className="brand-mark" aria-hidden="true"><span /></span>
@@ -147,8 +193,16 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
           <span className="brand-section">{translate(language, 'brandSection')}</span>
         </a>
         <div className="topbar-account">
-          <span className="account-email">{user.email}</span>
-          <LanguageSwitcher language={language} onChange={onLanguageChange} />
+          <span className="account-email">{user.displayName || user.email}</span>
+          {view === 'mypage' ? (
+            <button className="my-page-nav" type="button" onClick={returnFromMyPage}>
+              {translate(language, 'navExams')}
+            </button>
+          ) : (
+            <button className="my-page-nav" type="button" onClick={openMyPage}>
+              {translate(language, 'navMyPage')}
+            </button>
+          )}
           <button className="signout-button" type="button" onClick={onSignOut}>{translate(language, 'logOut')}</button>
         </div>
       </header>
@@ -228,6 +282,23 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
         </main>
       )}
 
+      {view === 'mypage' && (
+        <MyPage
+          user={user}
+          language={language}
+          onLanguageChange={onLanguageChange}
+          theme={theme}
+          onThemeChange={onThemeChange}
+          history={history}
+          bookmarkedQuestions={bookmarkedQuestions}
+          onToggleBookmark={toggleBookmark}
+          onUserUpdate={onUserUpdate}
+          onAccountDeleted={onAccountDeleted}
+          onBack={returnFromMyPage}
+          onStartExam={startExam}
+        />
+      )}
+
       {view === 'test' && currentExam && currentQuestion && (
         <main className="test-main">
           <div className="test-topline">
@@ -275,6 +346,14 @@ function MockExam({ user, language, onLanguageChange, onSignOut }) {
               <div className="question-meta">
                 <span>{translate(language, 'questionLabel')} {String(currentIndex + 1).padStart(2, '0')}</span>
                 <span className="category-label">{translateCategory(language, currentQuestion.category)}</span>
+                <button
+                  className="bookmark-button"
+                  type="button"
+                  aria-pressed={bookmarkedIds.includes(currentQuestion.id)}
+                  onClick={() => toggleBookmark(currentQuestion.id)}
+                >
+                  {translate(language, bookmarkedIds.includes(currentQuestion.id) ? 'removeBookmark' : 'bookmarkQuestion')}
+                </button>
               </div>
               <h1 id="question-title">{currentQuestion.prompt}</h1>
               <p className="answer-instruction">{translate(language, 'chooseOne')}</p>

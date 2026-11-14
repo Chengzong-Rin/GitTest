@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import LanguageSwitcher from './LanguageSwitcher.jsx'
 import MockExam from './MockExam.jsx'
 import { supportedLanguages, translate, translateApiError } from './translations.js'
 import './App.css'
@@ -13,13 +12,24 @@ function getSavedLanguage() {
   }
 }
 
+function getSavedTheme() {
+  try {
+    return localStorage.getItem('fieldnote-theme') === 'dark' ? 'dark' : 'light'
+  } catch {
+    return 'light'
+  }
+}
+
 function App() {
   const [language, setLanguage] = useState(getSavedLanguage)
+  const [theme, setTheme] = useState(getSavedTheme)
   const [mode, setMode] = useState('login')
   const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState('')
   const [user, setUser] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false)
+  const [pendingLogin, setPendingLogin] = useState(null)
 
   useEffect(() => {
     document.documentElement.lang = language
@@ -29,6 +39,15 @@ function App() {
       // The selected language still applies for this session when storage is unavailable.
     }
   }, [language])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    try {
+      localStorage.setItem('fieldnote-theme', theme)
+    } catch {
+      // The selected theme still applies for this session when storage is unavailable.
+    }
+  }, [theme])
 
   useEffect(() => {
     let cancelled = false
@@ -51,10 +70,14 @@ function App() {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     const isRegistering = mode === 'register'
-    const email = formData.get('email')
-    const password = formData.get('password')
+    const credentials = twoFactorRequired ? pendingLogin : {
+      email: formData.get('email'),
+      password: formData.get('password'),
+      rememberMe: formData.get('rememberMe') === 'on',
+    }
+    const twoFactorCode = twoFactorRequired ? formData.get('twoFactorCode') : undefined
 
-    if (isRegistering && password !== formData.get('confirmPassword')) {
+    if (isRegistering && credentials.password !== formData.get('confirmPassword')) {
       setStatus(translate(language, 'passwordMismatch'))
       return
     }
@@ -67,16 +90,23 @@ function App() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          email,
-          password,
-          rememberMe: formData.get('rememberMe') === 'on',
+          ...credentials,
+          ...(twoFactorCode ? { twoFactorCode } : {}),
         }),
       })
       const data = await response.json()
 
+      if (response.ok && data.requiresTwoFactor) {
+        setPendingLogin(credentials)
+        setTwoFactorRequired(true)
+        setStatus('')
+        return
+      }
       if (!response.ok) {
         throw new Error(translateApiError(language, data.error) || translate(language, 'signInError'))
       }
+      setPendingLogin(null)
+      setTwoFactorRequired(false)
       setUser(data.user)
       setStatus(translate(language, isRegistering ? 'accountReady' : 'signedIn'))
     } catch (error) {
@@ -98,7 +128,31 @@ function App() {
     }
   }
 
-  if (user) return <MockExam user={user} language={language} onLanguageChange={setLanguage} onSignOut={handleSignOut} />
+  function handleAccountDeleted() {
+    setUser(null)
+    setStatus(translate(language, 'accountDeleted'))
+  }
+
+  function returnToPasswordStep() {
+    setPendingLogin(null)
+    setTwoFactorRequired(false)
+    setStatus('')
+  }
+
+  if (user) {
+    return (
+      <MockExam
+        user={user}
+        language={language}
+        onLanguageChange={setLanguage}
+        theme={theme}
+        onThemeChange={setTheme}
+        onUserUpdate={setUser}
+        onAccountDeleted={handleAccountDeleted}
+        onSignOut={handleSignOut}
+      />
+    )
+  }
 
   return (
     <main className="login-layout" lang={language}>
@@ -121,17 +175,14 @@ function App() {
       </section>
 
       <section className="login-panel" id="sign-in">
-        <div className="login-language">
-          <LanguageSwitcher language={language} onChange={setLanguage} />
-        </div>
         <div className="login-content">
           <span className="overline panel-overline">{translate(language, 'loginKicker')}</span>
-          <h1>{translate(language, mode === 'login' ? 'welcome' : 'registerTitle')}</h1>
+          <h1>{translate(language, twoFactorRequired ? 'twoFactorLoginTitle' : mode === 'login' ? 'welcome' : 'registerTitle')}</h1>
           <p className="intro">
-            {translate(language, mode === 'login' ? 'welcomeSubtitle' : 'registerSubtitle')}
+            {translate(language, twoFactorRequired ? 'twoFactorLoginIntro' : mode === 'login' ? 'welcomeSubtitle' : 'registerSubtitle')}
           </p>
 
-          <div className="auth-switch" role="tablist" aria-label={translate(language, 'accountOptions')}>
+          {!twoFactorRequired && <div className="auth-switch" role="tablist" aria-label={translate(language, 'accountOptions')}>
             <button
               type="button"
               role="tab"
@@ -148,9 +199,29 @@ function App() {
             >
               {translate(language, 'createAccount')}
             </button>
-          </div>
+          </div>}
 
-          <form onSubmit={handleSubmit}>
+          <form key={twoFactorRequired ? 'two-factor' : 'credentials'} onSubmit={handleSubmit}>
+            {twoFactorRequired ? (
+              <>
+                <div className="field-group">
+                  <label htmlFor="two-factor-login-code">{translate(language, 'verificationCode')}</label>
+                  <input
+                    id="two-factor-login-code"
+                    name="twoFactorCode"
+                    type="text"
+                    autoComplete="one-time-code"
+                    placeholder="123456"
+                    autoFocus
+                    required
+                  />
+                </div>
+                <button className="text-button second-factor-back" type="button" onClick={returnToPasswordStep}>
+                  {translate(language, 'backToSignIn')}
+                </button>
+              </>
+            ) : (
+              <>
             <div className="field-group">
               <label htmlFor="email">{translate(language, 'email')}</label>
               <input
@@ -210,6 +281,8 @@ function App() {
                 </label>
                 <span className="member-hint">{translate(language, 'secureAccess')}</span>
               </div>
+            )}
+              </>
             )}
 
             <button className="submit-button" type="submit" disabled={isSubmitting}>
