@@ -109,6 +109,7 @@
 .results-main {
   width: min(100% - 64px, 1120px);
   margin: 0 auto;
+  animation: page-enter 380ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .exam-main {
@@ -200,6 +201,20 @@
   border: 1px solid #dce3dc;
   border-top: 3px solid var(--track-accent);
   background: #fbfcf9;
+  animation: item-enter 460ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition: border-color 180ms ease, box-shadow 220ms ease, transform 220ms ease, scale 220ms ease;
+}
+
+.track-card:nth-child(2) {
+  animation-delay: 70ms;
+}
+
+@media (hover: hover) {
+  .track-card:hover {
+    box-shadow: 0 12px 28px rgb(32 61 50 / 8%);
+    transform: translateY(-3px);
+    scale: 1.015;
+  }
 }
 
 .track-card.coral {
@@ -287,6 +302,36 @@
   border: 1px solid #dce3dc;
   border-top: 3px solid var(--track-accent);
   background: #fbfcf9;
+  animation: item-enter 430ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition: border-color 180ms ease, box-shadow 220ms ease, transform 220ms ease, scale 220ms ease;
+}
+
+.practice-mode-card:nth-child(2) {
+  animation-delay: 45ms;
+}
+
+.practice-mode-card:nth-child(3) {
+  animation-delay: 90ms;
+}
+
+.practice-mode-card:nth-child(4) {
+  animation-delay: 135ms;
+}
+
+.practice-mode-card:nth-child(5) {
+  animation-delay: 180ms;
+}
+
+.practice-mode-card:nth-child(6) {
+  animation-delay: 225ms;
+}
+
+@media (hover: hover) {
+  .practice-mode-card:hover {
+    box-shadow: 0 10px 24px rgb(32 61 50 / 7%);
+    transform: translateY(-3px);
+    scale: 1.015;
+  }
 }
 
 .practice-mode-card.coral {
@@ -369,12 +414,19 @@
   font: inherit;
   font-size: 11px;
   font-weight: 600;
-  transition: background-color 140ms ease;
+  transition: background-color 160ms ease, border-color 160ms ease, box-shadow 180ms ease, transform 160ms ease, scale 160ms ease;
 }
 
 .start-button:hover,
 .next-button:hover {
   background: #183c2e;
+  box-shadow: 0 4px 11px rgb(24 60 46 / 16%);
+  transform: translateY(-1px);
+}
+
+.start-button:active,
+.next-button:active {
+  transform: translateY(0) scale(0.985);
 }
 
 .start-button span,
@@ -539,6 +591,11 @@
   font: inherit;
   font-size: 9px;
   font-variant-numeric: tabular-nums;
+  transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease, transform 150ms ease, scale 150ms ease;
+}
+
+.question-index:hover {
+  transform: translateY(-1px);
 }
 
 .question-index.answered {
@@ -664,11 +721,13 @@
   font-size: 12px;
   line-height: 1.6;
   text-align: left;
-  transition: border-color 120ms ease, background-color 120ms ease;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease, scale 160ms ease;
 }
 
 .answer-option:hover {
   border-color: #98ae9d;
+  box-shadow: 0 3px 10px rgb(32 61 50 / 6%);
+  transform: translateX(2px);
 }
 
 .answer-option.selected {
@@ -732,6 +791,7 @@
   color: #40564a;
   font-size: 11px;
   line-height: 1.7;
+  animation: feedback-enter 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .practice-feedback.feedback-incorrect {
@@ -832,6 +892,19 @@
 .review-item {
   padding: 20px 0 22px;
   border-bottom: 1px solid #dfe5df;
+  animation: item-enter 360ms ease both;
+}
+
+.review-item:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.review-item:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.review-item:nth-child(4) {
+  animation-delay: 120ms;
 }
 
 .review-heading {

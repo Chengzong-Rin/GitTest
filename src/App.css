@@ -63,6 +63,7 @@
   right: 48px;
   bottom: 45px;
   left: 48px;
+  animation: page-enter 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .overline,
@@ -103,6 +104,7 @@
   width: min(100%, 430px);
   margin: auto;
   padding: 64px 36px 36px;
+  animation: page-enter 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
 .panel-overline {
@@ -142,6 +144,11 @@
   font: inherit;
   font-size: 9px;
   font-weight: 700;
+  transition: background-color 160ms ease, color 160ms ease, transform 160ms ease, scale 160ms ease;
+}
+
+.language-switch button:hover {
+  transform: translateY(-1px);
 }
 
 .language-switch button[aria-pressed='true'] {
@@ -188,6 +195,11 @@
   font: inherit;
   font-size: 11px;
   font-weight: 600;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease, transform 160ms ease, scale 160ms ease;
+}
+
+.auth-switch button:hover {
+  transform: translateY(-1px);
 }
 
 .auth-switch button[aria-selected='true'] {
@@ -222,7 +234,7 @@
   background: #fff;
   color: #203d32;
   font-size: 13px;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
 }
 
 .field-group input::placeholder {
@@ -305,12 +317,18 @@
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  transition: background-color 150ms ease, border-color 150ms ease;
+  transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, scale 180ms ease;
 }
 
 .submit-button:hover {
   border-color: #183c2e;
   background: #183c2e;
+  box-shadow: 0 5px 13px rgb(24 60 46 / 18%);
+  transform: translateY(-1px);
+}
+
+.submit-button:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .submit-button:disabled {
