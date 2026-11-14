@@ -123,8 +123,36 @@
   font-size: 14px;
 }
 
+.auth-switch {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-top: 26px;
+  padding: 4px;
+  border-radius: 6px;
+  background: #e9eee8;
+}
+
+.auth-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #68756e;
+  cursor: pointer;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.auth-switch button[aria-selected='true'] {
+  background: #fff;
+  color: #254d3d;
+  box-shadow: 0 1px 3px rgb(32 61 50 / 12%);
+}
+
 .login-content form {
-  margin-top: 35px;
+  margin-top: 23px;
 }
 
 .field-group {
@@ -238,6 +266,20 @@
 .submit-button:hover {
   border-color: #183c2e;
   background: #183c2e;
+}
+
+.submit-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.member-hint {
+  color: #7d8881;
+  font-size: 11px;
+}
+
+.auth-success .submit-button {
+  margin-top: 26px;
 }
 
 .form-status {
