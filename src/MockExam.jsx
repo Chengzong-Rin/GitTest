@@ -30,6 +30,20 @@ const examTracks = [
 const durationSeconds = 15 * 60
 const emptyQuestions = []
 const practiceYearOptions = [2019, 2020, 2021, 2022, 2023, 2024, 2025]
+const customPracticeCategories = {
+  itPassport: [
+    { key: 'categoryStrategy', questionCategories: ['ストラテジ'] },
+    { key: 'categoryManagement', questionCategories: ['マネジメント'] },
+    { key: 'categoryTechnology', questionCategories: ['テクノロジ'] },
+  ],
+  fe: [
+    { key: 'categoryTheory', questionCategories: ['基礎理論'] },
+    { key: 'categoryAlgorithms', questionCategories: ['アルゴリズム'] },
+    { key: 'categoryNetworks', questionCategories: ['ネットワーク'] },
+    { key: 'categoryDatabaseSecurity', questionCategories: ['データベース', 'セキュリティ'] },
+    { key: 'categorySystem', questionCategories: ['システム構成'] },
+  ],
+}
 const historyDateFormatters = {
   ja: new Intl.DateTimeFormat('ja-JP'),
   en: new Intl.DateTimeFormat('en-US'),
@@ -128,6 +142,10 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
     itPassport: { from: practiceYearOptions[0], to: practiceYearOptions.at(-1) },
     fe: { from: practiceYearOptions[0], to: practiceYearOptions.at(-1) },
   })
+  const [customSelectedCategories, setCustomSelectedCategories] = useState(() => ({
+    itPassport: customPracticeCategories.itPassport.map(({ key }) => key),
+    fe: customPracticeCategories.fe.map(({ key }) => key),
+  }))
   const [error, setError] = useState('')
   const [timeLeft, setTimeLeft] = useState(durationSeconds)
   const [result, setResult] = useState(null)
@@ -233,8 +251,14 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
 
   function getCustomQuestions(nextExamId) {
     const { from, to } = customYearRanges[nextExamId]
+    const selectedCategories = new Set(customSelectedCategories[nextExamId])
+    const questionCategories = customPracticeCategories[nextExamId]
+      .filter(({ key }) => selectedCategories.has(key))
+      .flatMap(({ questionCategories: categories }) => categories)
     return examQuestionSets[nextExamId].filter(
-      (question) => question.practiceYear >= from && question.practiceYear <= to,
+      (question) => question.practiceYear >= from
+        && question.practiceYear <= to
+        && questionCategories.includes(question.category),
     )
   }
 
@@ -477,6 +501,8 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
 
               {examTracks.map((exam, index) => {
                 const customQuestions = getCustomQuestions(exam.id)
+                const availableCategories = customPracticeCategories[exam.id]
+                const selectedCategories = customSelectedCategories[exam.id]
                 const selectedCount = customCounts[exam.id] === ''
                   ? ''
                   : Math.min(Number(customCounts[exam.id]) || 1, customQuestions.length)
@@ -528,13 +554,36 @@ function MockExam({ user, language, onLanguageChange, theme, onThemeChange, onUs
                         </label>
                       </div>
                     </div>
+                    <fieldset className="custom-category-filter">
+                      <legend>{translate(language, 'categoryFilter')}</legend>
+                      <div className="custom-category-options">
+                        {availableCategories.map(({ key }) => (
+                          <label key={key}>
+                            <input
+                              type="checkbox"
+                              checked={selectedCategories.includes(key)}
+                              onChange={(event) => {
+                                setCustomSelectedCategories((previous) => ({
+                                  ...previous,
+                                  [exam.id]: event.target.checked
+                                    ? [...previous[exam.id], key]
+                                    : previous[exam.id].filter((category) => category !== key),
+                                }))
+                              }}
+                            />
+                            <span>{translate(language, key)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
                     <label className="custom-count-control">
                       <span>{translate(language, 'questionCount')}</span>
                       <input
                         type="number"
-                        min="1"
-                        max={customQuestions.length}
+                        min={customQuestions.length ? 1 : 0}
+                        max={Math.max(1, customQuestions.length)}
                         value={selectedCount}
+                        disabled={!customQuestions.length}
                         aria-label={translate(language, 'questionCountFor', { exam: getTrackName(exam) })}
                         onChange={(event) => {
                           const value = event.target.value

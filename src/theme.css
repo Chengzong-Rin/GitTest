@@ -279,6 +279,10 @@
   color: #e0e8e1;
 }
 
+:root[data-theme='dark'] .custom-category-filter {
+  color: #a4b1a7;
+}
+
 :root[data-theme='dark'] .practice-mode-card .start-button:disabled,
 :root[data-theme='dark'] .question-controls .next-button:disabled {
   border-color: #435448;
