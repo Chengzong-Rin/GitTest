@@ -77,6 +77,12 @@
   color: #e0e8e1;
 }
 
+:root[data-theme='dark'] .ai-voice-choice select {
+  border-color: #435448;
+  background: #202c24;
+  color: #d7e1d8;
+}
+
 :root[data-theme='dark'] .ai-icon-button {
   color: #a4b1a7;
 }
@@ -84,6 +90,22 @@
 :root[data-theme='dark'] .ai-icon-button:hover {
   background: #2b3a2f;
   color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .ai-regenerate-button:hover:not(:disabled) {
+  background: #2b3a2f;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .ai-regenerate-button.is-speaking,
+:root[data-theme='dark'] .ai-mic-button:hover:not(:disabled) {
+  background: #2b3a2f;
+  color: #e0e8e1;
+}
+
+:root[data-theme='dark'] .ai-mic-button.is-listening {
+  background: #4a332b;
+  color: #f0bc9d;
 }
 
 :root[data-theme='dark'] .ai-resize-handle:hover,
