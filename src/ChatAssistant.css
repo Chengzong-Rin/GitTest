@@ -22,12 +22,17 @@
   font: inherit;
   font-size: 12px;
   font-weight: 600;
-  transition: background-color 150ms ease, transform 150ms ease;
+  transition: background-color 180ms ease, box-shadow 180ms ease, transform 180ms ease, scale 180ms ease;
 }
 
 .ai-launcher:hover {
-  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgb(25 54 41 / 30%);
+  transform: translateY(-3px);
   background: #183c2e;
+}
+
+.ai-launcher:active {
+  transform: translateY(0) scale(0.97);
 }
 
 .ai-launcher > span:first-child {
@@ -59,6 +64,19 @@
   border-radius: 10px;
   background: #fbfcf9;
   box-shadow: 0 12px 40px rgb(24 43 32 / 20%);
+  animation: chat-panel-enter 220ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes chat-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(9px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .ai-resize-handle {
@@ -162,11 +180,13 @@
   cursor: pointer;
   font: inherit;
   font-size: 20px;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, scale 150ms ease;
 }
 
 .ai-icon-button:hover {
   background: #f0f3ef;
   color: #254d3d;
+  transform: scale(1.06);
 }
 
 .ai-message-list {
@@ -220,6 +240,7 @@
   max-width: 92%;
   align-items: flex-start;
   gap: 8px;
+  animation: feedback-enter 200ms ease both;
 }
 
 .ai-message-user {
