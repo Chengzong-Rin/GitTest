@@ -1,5 +1,8 @@
 import { useEffect, useEffectEvent, useState } from 'react'
+import LanguageSwitcher from './LanguageSwitcher.jsx'
 import { examQuestionSets } from './mockQuestions.js'
+import { localizeQuestion } from './questionTranslations.js'
+import { translate, translateCategory } from './translations.js'
 import './MockExam.css'
 
 const examTracks = [
@@ -25,6 +28,11 @@ const examTracks = [
 
 const durationSeconds = 15 * 60
 const emptyQuestions = []
+const historyDateFormatters = {
+  ja: new Intl.DateTimeFormat('ja-JP'),
+  en: new Intl.DateTimeFormat('en-US'),
+  th: new Intl.DateTimeFormat('th-TH'),
+}
 
 function readHistory(storageKey) {
   try {
@@ -47,7 +55,17 @@ function getScore(questions, answers) {
   )
 }
 
-function MockExam({ user, onSignOut }) {
+function getCompletionTime() {
+  const timestamp = Date.now()
+  return {
+    finishedAt: new Date(timestamp).toISOString(),
+    finishedOn: Object.fromEntries(
+      Object.entries(historyDateFormatters).map(([locale, formatter]) => [locale, formatter.format(timestamp)]),
+    ),
+  }
+}
+
+function MockExam({ user, language, onLanguageChange, onSignOut }) {
   const storageKey = `fieldnote-mock-history:${user.id}`
   const [view, setView] = useState('dashboard')
   const [examId, setExamId] = useState(null)
@@ -58,7 +76,8 @@ function MockExam({ user, onSignOut }) {
   const [history, setHistory] = useState(() => readHistory(storageKey))
 
   const currentExam = examTracks.find((exam) => exam.id === examId)
-  const questions = examId ? examQuestionSets[examId] : emptyQuestions
+  const sourceQuestions = examId ? examQuestionSets[examId] : emptyQuestions
+  const questions = sourceQuestions.map((question) => localizeQuestion(question, language))
   const currentQuestion = questions[currentIndex]
   const answeredCount = Object.keys(answers).length
 
@@ -78,7 +97,7 @@ function MockExam({ user, onSignOut }) {
       examId,
       correct: getScore(questions, answers),
       total: questions.length,
-      finishedAt: new Date().toISOString(),
+      ...getCompletionTime(),
     }
     const nextHistory = [finishedResult, ...history].slice(0, 8)
     localStorage.setItem(storageKey, JSON.stringify(nextHistory))
@@ -110,18 +129,27 @@ function MockExam({ user, onSignOut }) {
     setResult(null)
   }
 
+  function getTrackName(exam) {
+    return translate(language, exam.id === 'itPassport' ? 'itPassport' : 'feExam')
+  }
+
+  function getTrackDescription(exam) {
+    return translate(language, exam.id === 'itPassport' ? 'itPassportDescription' : 'feDescription')
+  }
+
   return (
-    <div className="exam-app">
+    <div className="exam-app" lang={language}>
       <header className="exam-topbar">
         <a className="exam-brand" href="#home" onClick={(event) => { event.preventDefault(); returnToDashboard() }}>
           <span className="brand-mark" aria-hidden="true"><span /></span>
           <span>fieldnote</span>
           <span className="brand-divider" />
-          <span className="brand-section">EXAM STUDIO</span>
+          <span className="brand-section">{translate(language, 'brandSection')}</span>
         </a>
         <div className="topbar-account">
           <span className="account-email">{user.email}</span>
-          <button className="signout-button" type="button" onClick={onSignOut}>ログアウト</button>
+          <LanguageSwitcher language={language} onChange={onLanguageChange} />
+          <button className="signout-button" type="button" onClick={onSignOut}>{translate(language, 'logOut')}</button>
         </div>
       </header>
 
@@ -129,22 +157,22 @@ function MockExam({ user, onSignOut }) {
         <main className="exam-main">
           <div className="exam-heading-row">
             <div>
-              <span className="eyebrow">INDEPENDENT PRACTICE / 2026</span>
-              <h1>次の一問から、<em>はじめよう。</em></h1>
-              <p className="dashboard-intro">出題分野を参考に構成した、オリジナルのミニ模試です。</p>
+              <span className="eyebrow">{translate(language, 'dashboardEyebrow')}</span>
+              <h1>{translate(language, 'dashboardLead')} <em>{translate(language, 'dashboardAccent')}</em></h1>
+              <p className="dashboard-intro">{translate(language, 'dashboardIntro')}</p>
             </div>
             <div className="session-stamp">
               <span className="stamp-number">{history.length.toString().padStart(2, '0')}</span>
-              <span>完了した模試</span>
+              <span>{translate(language, 'completedExams')}</span>
             </div>
           </div>
 
           <div className="section-heading">
-            <h2>試験を選ぶ</h2>
-            <span>各10問 / 制限時間15分</span>
+            <h2>{translate(language, 'chooseExam')}</h2>
+            <span>{translate(language, 'examDetails')}</span>
           </div>
 
-          <section className="track-grid" aria-label="模擬試験一覧">
+          <section className="track-grid" aria-label={translate(language, 'chooseExam')}>
             {examTracks.map((exam) => {
               const attempts = history.filter((attempt) => attempt.examId === exam.id)
               const bestScore = attempts.length
@@ -157,15 +185,15 @@ function MockExam({ user, onSignOut }) {
                     <span className="track-number">{exam.number}</span>
                     <span className="track-english">{exam.englishName}</span>
                   </div>
-                  <h3>{exam.name}</h3>
-                  <p>{exam.description}</p>
+                  <h3>{getTrackName(exam)}</h3>
+                  <p>{getTrackDescription(exam)}</p>
                   <ul className="topic-list">
-                    {exam.categories.map((category) => <li key={category}>{category}</li>)}
+                    {exam.categories.map((category) => <li key={category}>{translateCategory(language, category)}</li>)}
                   </ul>
                   <div className="track-card-bottom">
-                    <span>{bestScore === null ? '未受験' : `最高 ${bestScore}% · ${attempts.length}回受験`}</span>
+                    <span>{bestScore === null ? translate(language, 'noAttempts') : translate(language, 'bestAttempts', { score: bestScore, count: attempts.length })}</span>
                     <button className="start-button" type="button" onClick={() => startExam(exam.id)}>
-                      模試をはじめる <span aria-hidden="true">↗</span>
+                      {translate(language, 'startExam')} <span aria-hidden="true">↗</span>
                     </button>
                   </div>
                 </article>
@@ -175,8 +203,8 @@ function MockExam({ user, onSignOut }) {
 
           <section className="history-section" aria-labelledby="history-title">
             <div className="section-heading">
-              <h2 id="history-title">最近の記録</h2>
-              <span>このブラウザーに保存</span>
+              <h2 id="history-title">{translate(language, 'recentHistory')}</h2>
+              <span>{translate(language, 'savedInBrowser')}</span>
             </div>
             {history.length ? (
               <div className="history-list">
@@ -184,36 +212,36 @@ function MockExam({ user, onSignOut }) {
                   const exam = examTracks.find((track) => track.id === attempt.examId)
                   return (
                     <div className="history-row" key={attempt.finishedAt}>
-                      <span className="history-exam">{exam?.name}</span>
-                      <span>{new Date(attempt.finishedAt).toLocaleDateString('ja-JP')}</span>
+                      <span className="history-exam">{exam ? getTrackName(exam) : ''}</span>
+                      <span>{historyDateFormatters[language].format(Date.parse(attempt.finishedAt))}</span>
                       <span className="history-score">{attempt.correct} / {attempt.total}</span>
                     </div>
                   )
                 })}
               </div>
             ) : (
-              <p className="empty-history">模試を完了すると、ここにスコアが表示されます。</p>
+              <p className="empty-history">{translate(language, 'historyEmpty')}</p>
             )}
           </section>
 
-          <p className="source-note">問題は参考教材の出題分野をもとに作成したオリジナル問題です。公式問題ではありません。</p>
+          <p className="source-note">{translate(language, 'sourceNote')}</p>
         </main>
       )}
 
       {view === 'test' && currentExam && currentQuestion && (
         <main className="test-main">
           <div className="test-topline">
-            <button className="back-button" type="button" onClick={returnToDashboard}>← 試験一覧</button>
-            <span className="test-title">{currentExam.name} <span>/ ミニ模試</span></span>
+            <button className="back-button" type="button" onClick={returnToDashboard}>← {translate(language, 'examList')}</button>
+            <span className="test-title">{getTrackName(currentExam)} <span>/ {translate(language, 'miniMock')}</span></span>
             <div className={`timer ${timeLeft <= 60 ? 'timer-warning' : ''}`} aria-live="polite">
-              <span className="timer-label">残り時間</span>
+              <span className="timer-label">{translate(language, 'timeRemaining')}</span>
               <strong>{formatTime(timeLeft)}</strong>
             </div>
           </div>
 
           <div className="test-progress-row">
-            <span>回答済み <strong>{answeredCount}</strong> / {questions.length}</span>
-            <div className="progress-track" role="progressbar" aria-label="問題の進行状況" aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={currentIndex + 1}>
+            <span>{translate(language, 'answeredCount')} <strong>{answeredCount}</strong> / {questions.length}</span>
+            <div className="progress-track" role="progressbar" aria-label={translate(language, 'questionList')} aria-valuemin={0} aria-valuemax={questions.length} aria-valuenow={currentIndex + 1}>
               <span style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }} />
             </div>
             <span>{currentIndex + 1} / {questions.length}</span>
@@ -221,14 +249,17 @@ function MockExam({ user, onSignOut }) {
 
           <div className="test-layout">
             <aside className="question-sidebar">
-              <span className="sidebar-label">問題一覧</span>
+              <span className="sidebar-label">{translate(language, 'questionList')}</span>
               <div className="question-index-grid">
                 {questions.map((question, index) => (
                   <button
                     className={`question-index ${currentIndex === index ? 'current' : ''} ${answers[question.id] !== undefined ? 'answered' : ''}`}
                     key={question.id}
                     type="button"
-                    aria-label={`問題 ${index + 1}${answers[question.id] !== undefined ? ' 回答済み' : ''}`}
+                    aria-label={translate(language, 'questionAria', {
+                      number: index + 1,
+                      answered: answers[question.id] !== undefined ? translate(language, 'questionAnsweredSuffix') : '',
+                    })}
                     aria-current={currentIndex === index ? 'step' : undefined}
                     onClick={() => setCurrentIndex(index)}
                   >
@@ -236,19 +267,19 @@ function MockExam({ user, onSignOut }) {
                   </button>
                 ))}
               </div>
-              <div className="sidebar-legend"><span /> 回答済み</div>
-              <button className="finish-button" type="button" onClick={finishExam}>採点して終了</button>
+              <div className="sidebar-legend"><span /> {translate(language, 'answered')}</div>
+              <button className="finish-button" type="button" onClick={finishExam}>{translate(language, 'finishAndScore')}</button>
             </aside>
 
             <section className="question-panel" aria-labelledby="question-title">
               <div className="question-meta">
-                <span>QUESTION {String(currentIndex + 1).padStart(2, '0')}</span>
-                <span className="category-label">{currentQuestion.category}</span>
+                <span>{translate(language, 'questionLabel')} {String(currentIndex + 1).padStart(2, '0')}</span>
+                <span className="category-label">{translateCategory(language, currentQuestion.category)}</span>
               </div>
               <h1 id="question-title">{currentQuestion.prompt}</h1>
-              <p className="answer-instruction">最も適切なものを1つ選んでください。</p>
+              <p className="answer-instruction">{translate(language, 'chooseOne')}</p>
 
-              <div className="answer-list" role="radiogroup" aria-label="回答選択肢">
+              <div className="answer-list" role="radiogroup" aria-label={translate(language, 'answerOptions')}>
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = answers[currentQuestion.id] === index
                   return (
@@ -260,7 +291,7 @@ function MockExam({ user, onSignOut }) {
                       aria-checked={isSelected}
                       onClick={() => setAnswers((previous) => ({ ...previous, [currentQuestion.id]: index }))}
                     >
-                      <span className="option-letter">{['ア', 'イ', 'ウ', 'エ'][index]}</span>
+                      <span className="option-letter">{translate(language, 'optionLetters')[index]}</span>
                       <span>{option}</span>
                     </button>
                   )
@@ -269,10 +300,10 @@ function MockExam({ user, onSignOut }) {
 
               <div className="question-controls">
                 <button className="previous-button" type="button" disabled={currentIndex === 0} onClick={() => setCurrentIndex((index) => index - 1)}>
-                  前の問題
+                  {translate(language, 'previousQuestion')}
                 </button>
                 <button className="next-button" type="button" onClick={() => currentIndex === questions.length - 1 ? finishExam() : setCurrentIndex((index) => index + 1)}>
-                  {currentIndex === questions.length - 1 ? '採点して終了' : '次の問題'} <span aria-hidden="true">→</span>
+                  {currentIndex === questions.length - 1 ? translate(language, 'finishAndScore') : translate(language, 'nextQuestion')} <span aria-hidden="true">→</span>
                 </button>
               </div>
             </section>
@@ -282,21 +313,21 @@ function MockExam({ user, onSignOut }) {
 
       {view === 'results' && currentExam && result && (
         <main className="results-main">
-          <button className="back-button" type="button" onClick={returnToDashboard}>← 試験一覧</button>
+          <button className="back-button" type="button" onClick={returnToDashboard}>← {translate(language, 'examList')}</button>
           <section className="result-summary">
-            <span className="eyebrow">RESULT / {currentExam.englishName}</span>
+            <span className="eyebrow">{translate(language, 'resultLabel')} / {getTrackName(currentExam)}</span>
             <h1>{result.correct}<span> / {result.total}</span></h1>
-            <p>{result.correct >= 7 ? 'いい調子です。解説で知識を定着させましょう。' : '解説を確認して、もう一度挑戦してみましょう。'}</p>
+            <p>{translate(language, result.correct >= 7 ? 'resultGood' : 'resultRetry')}</p>
             <div className="result-actions">
-              <button className="next-button" type="button" onClick={() => startExam(examId)}>もう一度挑戦 <span aria-hidden="true">↻</span></button>
-              <button className="previous-button" type="button" onClick={returnToDashboard}>試験一覧へ</button>
+              <button className="next-button" type="button" onClick={() => startExam(examId)}>{translate(language, 'retryExam')} <span aria-hidden="true">↻</span></button>
+              <button className="previous-button" type="button" onClick={returnToDashboard}>{translate(language, 'backToExams')}</button>
             </div>
           </section>
 
           <section className="review-section" aria-labelledby="review-title">
             <div className="section-heading">
-              <h2 id="review-title">問題と解説</h2>
-              <span>正解 {result.correct} / {result.total}</span>
+              <h2 id="review-title">{translate(language, 'reviewTitle')}</h2>
+              <span>{translate(language, 'correctAnswer')} {result.correct} / {result.total}</span>
             </div>
             <div className="review-list">
               {questions.map((question, index) => {
@@ -305,12 +336,12 @@ function MockExam({ user, onSignOut }) {
                 return (
                   <article className={`review-item ${isCorrect ? 'review-correct' : 'review-incorrect'}`} key={question.id}>
                     <div className="review-heading">
-                      <span>Q{String(index + 1).padStart(2, '0')} · {question.category}</span>
-                      <strong>{isCorrect ? '正解' : '要復習'}</strong>
+                      <span>Q{String(index + 1).padStart(2, '0')} · {translateCategory(language, question.category)}</span>
+                      <strong>{translate(language, isCorrect ? 'reviewCorrect' : 'reviewNeedsReview')}</strong>
                     </div>
                     <h3>{question.prompt}</h3>
-                    <p className="review-answer">あなたの回答：{selected === undefined ? '未回答' : question.options[selected]}</p>
-                    <p className="review-answer">正解：{question.options[question.answer]}</p>
+                    <p className="review-answer">{translate(language, 'yourAnswer')}：{selected === undefined ? translate(language, 'unanswered') : question.options[selected]}</p>
+                    <p className="review-answer">{translate(language, 'correctAnswer')}：{question.options[question.answer]}</p>
                     <p className="review-explanation">{question.explanation}</p>
                   </article>
                 )

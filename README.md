@@ -15,6 +15,8 @@ Create an account from the page, then sign in with that email and password. User
 
 ## Mock exams
 
+The interface supports Japanese, English, and Thai. The selected language is remembered in the browser and applies to the sign-in flow, exam screens, questions, and explanations.
+
 After signing in, choose IT Passport or Fundamental Information Technology Engineer (FE). Each track currently has 10 original questions and a 15-minute timer, with question navigation, scoring, and explanations. Attempt history is saved per account in that browser's local storage; it is separate from the SQLite authentication database.
 
 The supplied `kihonjouho_mondai-main/kakomon` JSON files informed the topic coverage. The app uses newly written practice questions, not copied official exam questions.
