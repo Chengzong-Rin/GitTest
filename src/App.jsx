@@ -15,8 +15,8 @@ function App() {
       <section className="visual-panel" aria-label="Fieldnote studio">
         <img
           className="visual-image"
-          src="https://images.unsplash.com/photo-1487958449943-2429e8be8625?auto=format&fit=crop&w=1800&q=85"
-          alt="Sculptural white architecture framed by a clear sky"
+          src="https://images.unsplash.com/photo-1600210492486-724fe5c67fb0?auto=format&fit=crop&w=1800&q=85"
+          alt="Warm, refined living space with elegant modern furnishings"
         />
         <div className="visual-shade" aria-hidden="true" />
         <a className="brand" href="#sign-in" aria-label="Fieldnote home">
