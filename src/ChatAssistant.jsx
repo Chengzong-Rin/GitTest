@@ -13,6 +13,74 @@ function clampChatSize(size) {
   }
 }
 
+function FieldnoteMark({ className }) {
+  return <span className={`${className} fieldnote-mark`} aria-hidden="true" />
+}
+
+function formatInlineMarkdown(text) {
+  return text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*\n]+\*)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>
+    }
+    if (part.startsWith('`') && part.endsWith('`')) {
+      return <code key={index}>{part.slice(1, -1)}</code>
+    }
+    if (part.startsWith('*') && part.endsWith('*')) {
+      return <em key={index}>{part.slice(1, -1)}</em>
+    }
+    return part
+  })
+}
+
+function AssistantMessage({ text }) {
+  const lines = text.split(/\r?\n/)
+  const blocks = []
+  let lineIndex = 0
+
+  while (lineIndex < lines.length) {
+    const line = lines[lineIndex].trim()
+    if (!line) {
+      lineIndex += 1
+      continue
+    }
+
+    const heading = line.match(/^#{1,3}\s+(.+)$/)
+    if (heading) {
+      blocks.push(<strong className="ai-message-heading" key={lineIndex}>{formatInlineMarkdown(heading[1])}</strong>)
+      lineIndex += 1
+      continue
+    }
+
+    const listItem = line.match(/^(?:[-*]\s+|\d+[.)]\s+)(.+)$/)
+    if (listItem) {
+      const listStart = lineIndex
+      const listItems = []
+      while (lineIndex < lines.length) {
+        const item = lines[lineIndex].trim().match(/^(?:[-*]\s+|\d+[.)]\s+)(.+)$/)
+        if (!item) break
+        listItems.push(<li key={lineIndex}>{formatInlineMarkdown(item[1])}</li>)
+        lineIndex += 1
+      }
+      const isOrderedList = /^\d+[.)]\s+/.test(line)
+      const List = isOrderedList ? 'ol' : 'ul'
+      blocks.push(<List key={listStart}>{listItems}</List>)
+      continue
+    }
+
+    const paragraphStart = lineIndex
+    const paragraphLines = []
+    while (lineIndex < lines.length) {
+      const paragraphLine = lines[lineIndex].trim()
+      if (!paragraphLine || /^#{1,3}\s+/.test(paragraphLine) || /^(?:[-*]\s+|\d+[.)]\s+)/.test(paragraphLine)) break
+      paragraphLines.push(paragraphLine)
+      lineIndex += 1
+    }
+    blocks.push(<p key={paragraphStart}>{formatInlineMarkdown(paragraphLines.join(' '))}</p>)
+  }
+
+  return <div className="ai-message-content">{blocks}</div>
+}
+
 function getSavedChatSize() {
   try {
     const savedSize = JSON.parse(localStorage.getItem('fieldnote-ai-chat-size') || 'null')
@@ -220,7 +288,7 @@ function ChatAssistant({ language }) {
           </button>
           <header className="ai-chat-header">
             <div className="ai-chat-heading">
-              <span className="ai-avatar" aria-hidden="true">✦</span>
+              <FieldnoteMark className="ai-avatar" />
               <div>
                 <h2>{translate(language, 'aiTitle')}</h2>
                 <p>{translate(language, 'aiSubtitle')}</p>
@@ -252,20 +320,20 @@ function ChatAssistant({ language }) {
           <div className="ai-message-list" ref={messageListRef} aria-live="polite">
             {messages.length === 0 && (
               <div className="ai-welcome">
-                <span className="ai-welcome-mark" aria-hidden="true">✦</span>
+                <FieldnoteMark className="ai-welcome-mark" />
                 <p>{translate(language, 'aiWelcome')}</p>
                 <span>{translate(language, 'aiDisclaimer')}</span>
               </div>
             )}
             {messages.map((item, index) => (
               <div className={`ai-message ai-message-${item.role}`} key={`${index}-${item.role}`}>
-                {item.role === 'model' && <span className="ai-message-mark" aria-hidden="true">✦</span>}
-                <p>{item.text}</p>
+                {item.role === 'model' && <FieldnoteMark className="ai-message-mark" />}
+                {item.role === 'model' ? <AssistantMessage text={item.text} /> : <p>{item.text}</p>}
               </div>
             ))}
             {isSending && (
               <div className="ai-message ai-message-model ai-typing" role="status">
-                <span className="ai-message-mark" aria-hidden="true">✦</span>
+                <FieldnoteMark className="ai-message-mark" />
                 <p>{translate(language, 'aiThinking')}</p>
               </div>
             )}
@@ -322,7 +390,7 @@ function ChatAssistant({ language }) {
         aria-label={translate(language, isOpen ? 'aiClose' : 'aiOpen')}
         onClick={() => setIsOpen((open) => !open)}
       >
-        {isOpen ? '×' : <><span aria-hidden="true">✦</span><span>{translate(language, 'aiOpen')}</span></>}
+        {isOpen ? '×' : <><FieldnoteMark className="ai-launcher-mark" /><span>{translate(language, 'aiOpen')}</span></>}
       </button>
     </div>
   )
