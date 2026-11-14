@@ -39,6 +39,22 @@ function getPreferredSpeechVoice(voices, locale) {
   })[0]
 }
 
+function getSpeechText(text) {
+  return text
+    .replace(/```[^\n]*\n?|\n?```/g, '')
+    .replace(/^\s{0,3}#{1,6}\s+/gm, '')
+    .replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm, '')
+    .replace(/(\*\*|__|~~|`)(.*?)\1/g, '$2')
+    .replace(/(\*|_)([^*_\n]+)\1/g, '$2')
+    .split(/\s+/u)
+    .filter((token) => (
+      /[\p{L}\p{N}]/u.test(token)
+      || !/[@#$%^&*_+=~|\\<>]/u.test(token)
+    ))
+    .join(' ')
+    .trim()
+}
+
 function formatInlineMarkdown(text) {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`|\*[^*\n]+\*)/g).map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
@@ -373,8 +389,14 @@ function ChatAssistant({ language }) {
     }
 
     window.speechSynthesis.cancel()
+    const speechText = getSpeechText(text)
+    if (!speechText) {
+      setError(translate(language, 'aiSpeechNoText'))
+      return
+    }
+
     const locale = getSpeechLanguage(language)
-    const utterance = new window.SpeechSynthesisUtterance(text)
+    const utterance = new window.SpeechSynthesisUtterance(speechText)
     utterance.lang = locale
     utterance.rate = language === 'th' ? 0.9 : 0.95
     utterance.pitch = 1
