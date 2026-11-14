@@ -430,6 +430,49 @@
   color: #9aa49d;
 }
 
+.custom-category-filter {
+  display: grid;
+  width: 100%;
+  gap: 7px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  color: #758178;
+  font-size: 10px;
+}
+
+.custom-category-filter legend {
+  margin-bottom: 7px;
+  padding: 0;
+}
+
+.custom-category-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.custom-category-options label {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  line-height: 1.35;
+}
+
+.custom-category-options input {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--track-accent);
+}
+
+.custom-category-options span {
+  overflow-wrap: anywhere;
+}
+
 .practice-modes-note {
   margin: 10px 0 0;
   color: #89958b;
